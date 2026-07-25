@@ -35,7 +35,12 @@ entry: what was done, decisions, blockers, and the next step. Dates are absolute
 - None blocking. `.env` not created (needs real `OPENAI_API_KEY` / LangSmith key
   from the lead before Phase 3; not required to start Phase 1).
 
+- Initialized git (`main`) and made the initial commit `bddfc30`
+  (`chore: bootstrap project scaffolding...`). No tag yet — `v0.1.0` is cut when
+  Phase 1's release criteria pass. Excluded `.claude/settings.local.json` (local
+  per-user permissions) from version control.
+
 **Next step**
-- ⏸️ **Paused for project-lead review of the setup**, per the agreed scope.
-- On approval: `git init` + initial commit, then begin Phase 1 (WI-01 first —
-  the locked state schema).
+- ⏸️ **Paused for project-lead review of the setup**, per the agreed scope (ADR-0002).
+- On approval: run `uv sync --extra dev`, then begin Phase 1 — **WI-01 first**
+  (the locked `IncidentState` schema), which everything else depends on.

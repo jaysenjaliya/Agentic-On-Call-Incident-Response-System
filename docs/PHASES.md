@@ -29,10 +29,10 @@ process the PRD assumes. No product code.
 - ✅ Flat package skeleton (`state/ tools/ utils/ agents/ evaluation/`, `config.py`, `main.py`)
 - ✅ Documentation system (`docs/`)
 - ✅ `CLAUDE.md` + `.claude/skills/` (phase-complete, log-decision)
-- 🟨 `git init`, initial commit
-- ⬜ Sync uv env / lockfile (deferred until Phase 1, to avoid resolving deps we don't run yet)
+- ✅ `git init` (branch `main`) + initial commit `chore: bootstrap ...` (Phase 0). No tag — `v0.1.0` is cut at Phase 1 completion.
+- ⏭️ Sync uv env / lockfile — deferred until Phase 1, to avoid resolving heavy LLM deps before any code runs.
 
-**Exit → Phase 1** when: repo initialized, first commit made, project lead reviews the setup.
+**Exit → Phase 1** when: project lead reviews the setup. Repo initialized ✅, first commit made ✅.
 
 ---
 
