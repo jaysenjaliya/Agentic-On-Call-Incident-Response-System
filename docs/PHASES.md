@@ -3,12 +3,12 @@
 > **The plan of record.** Update work-item and phase status here as work happens.
 > Status legend: ⬜ Not started · 🟨 In progress · ✅ Done · ⛔ Blocked · ⏭️ Deferred/skipped
 
-**Current phase:** Phase 0 — Project Setup (infrastructure & process) · **Latest tag:** _none yet_
+**Current phase:** Phase 2 — Individual Subgraphs (not started) · **Latest tag:** `v0.1.0`
 
 | Version | Phase | Days | Milestone | Status |
 |---------|-------|------|-----------|--------|
-| — | 0 · Setup | — | Repo, docs system, CLAUDE.md + skills, uv env | 🟨 In progress |
-| v0.1.0 | 1 · Foundation | 1–2 | State schema, tools, utilities — all tested | ⬜ |
+| — | 0 · Setup | — | Repo, docs system, CLAUDE.md + skills, uv env | ✅ Done |
+| v0.1.0 | 1 · Foundation | 1–2 | State schema, tools, utilities — all tested | ✅ Done |
 | v0.2.0 | 2 · Subgraphs | 3–6 | Three subgraphs working independently | ⬜ |
 | v0.3.0 | 3 · Integration | 7–9 | Full pipeline end-to-end + production features | ⬜ |
 | v1.0.0 | 4 · Evaluation | 9–10 | Portfolio-ready with metrics + docs | ⬜ |
@@ -43,25 +43,26 @@ isolation. This is the locked contract the rest of the system builds on.
 
 | WI | Work item | Prio | Est | Depends | Status |
 |----|-----------|------|-----|---------|--------|
-| WI-01 | Define `IncidentState` schema (5 field categories) + `AuditEvent`, `DeadLetterEntry`, `create_initial_state()` | P0 | 0.5d | — | ⬜ |
-| WI-02 | `MockLogAPI` with 4 failure modes | P0 | 0.5d | WI-01 | ⬜ |
-| WI-03 | `MockRunbookSearch` (keyword matching) | P0 | 0.5d | WI-01 | ⬜ |
-| WI-04 | `MockGitHubAPI` (deployment history) | P0 | 0.5d | WI-01 | ⬜ |
-| WI-05 | `MockNotificationService` | P0 | 0.25d | WI-01 | ⬜ |
-| WI-06 | Failure classifier (`classify_failure` + `classify_response`) | P0 | 0.5d | — | ⬜ |
-| WI-07 | Audit trail util (append / format / save) | P0 | 0.5d | WI-01 | ⬜ |
-| WI-08 | Dead letter queue util (send / review) | P0 | 0.5d | WI-01 | ⬜ |
-| WI-09 | `config.py` with all thresholds | P0 | 0.25d | — | ⬜ |
-| WI-10 | 3 seed test incidents (JSON) | P0 | 0.25d | — | ⬜ |
+| WI-01 | Define `IncidentState` schema (5 field categories) + `AuditEvent`, `DeadLetterEntry`, `create_initial_state()` | P0 | 0.5d | — | ✅ |
+| WI-02 | `MockLogAPI` with 4 failure modes | P0 | 0.5d | WI-01 | ✅ |
+| WI-03 | `MockRunbookSearch` (keyword matching) | P0 | 0.5d | WI-01 | ✅ |
+| WI-04 | `MockGitHubAPI` (deployment history) | P0 | 0.5d | WI-01 | ✅ |
+| WI-05 | `MockNotificationService` | P0 | 0.25d | WI-01 | ✅ |
+| WI-06 | Failure classifier (`classify_failure` + `classify_response`) | P0 | 0.5d | — | ✅ |
+| WI-07 | Audit trail util (append / format / save) | P0 | 0.5d | WI-01 | ✅ |
+| WI-08 | Dead letter queue util (send / review) | P0 | 0.5d | WI-01 | ✅ |
+| WI-09 | `config.py` with all thresholds | P0 | 0.25d | — | ✅ |
+| WI-10 | 3 seed test incidents (JSON) | P0 | 0.25d | — | ✅ |
 
-**Release criteria for v0.1.0** (all must pass):
-- ⬜ `main.py --test-tools` — 4 tools work; all failure modes raise correct exceptions
-- ⬜ `main.py --test-state` — state creation works; all fields present w/ correct defaults
-- ⬜ `classify_failure` maps: `TimeoutError`→timeout, 429→rate_limit, 401→auth, unknown→unknown
-- ⬜ `classify_response` distinguishes: ok, empty (not error), malformed (is error)
-- ⬜ Audit trail appends, formats, and saves to file
-- ⬜ DLQ writes and reads JSON files
-- ⬜ Git tag `v0.1.0` created
+**Release criteria for v0.1.0** (all verified — see PROGRESS.md 2026-07-25 for evidence):
+- ✅ `main.py --test-tools` — 4 tools work; all failure modes behave correctly (exit 0, 24/24 mode checks)
+- ✅ `main.py --test-state` — state creation works; all 42 fields present w/ correct defaults (exit 0)
+- ✅ `classify_failure` maps: `TimeoutError`→timeout, 429→rate_limit, 401→auth, unknown→unknown
+- ✅ `classify_response` distinguishes: ok, empty (not error), malformed (is error)
+- ✅ Audit trail appends, formats, and saves to file
+- ✅ DLQ writes and reads JSON files
+- ✅ Git tag `v0.1.0` created
+- ✅ Quality bar: 83 pytest passing, `ruff` clean, `mypy` clean on product code
 
 ---
 

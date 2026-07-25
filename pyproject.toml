@@ -45,6 +45,11 @@ target-version = "py311"
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 
+[tool.ruff.lint.per-file-ignores]
+# Tests favour long, readable assertions and parametrize rows over rigid wrapping;
+# product code stays strict at the 100-char limit.
+"tests/**" = ["E501"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-v"
@@ -53,3 +58,9 @@ addopts = "-v"
 python_version = "3.11"
 warn_return_any = true
 disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+# Test functions receive pytest fixtures/parametrize values that fight strict
+# signature typing; behaviour is validated by running them. Product code stays strict.
+module = "tests.*"
+disallow_untyped_defs = false

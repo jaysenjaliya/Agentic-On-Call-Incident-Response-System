@@ -56,3 +56,44 @@ only; supersede rather than delete). Use the `log-decision` skill to add one.
   references and the documented CLI commands for marginal packaging benefit.
 - **Consequences:** `pyproject.toml` lists the packages explicitly for the wheel
   build target.
+
+## ADR-0006 — Mock tools return `Any` at the external boundary
+- **Date:** 2026-07-25 · **Status:** Accepted · **Decider:** Claude (Phase 1)
+- **Context:** Tools must exercise both novelty paths: exceptions (→
+  `classify_failure`) and a *malformed but non-exception* payload (→
+  `classify_response`). A truncated-JSON string is the realistic malformed case,
+  but that conflicts with a precise `list[dict]` return annotation.
+- **Decision:** Mock tool fetch/send methods are annotated `-> Any` (an external
+  API boundary genuinely can return anything). Normal shape is documented and
+  enforced via `*_KEYS` constants + `classify_response(required_keys=...)`.
+  MALFORMED mode returns `MALFORMED_PAYLOAD` (a raw string); EMPTY returns an
+  empty container.
+- **Alternatives:** raise `MalformedResponseError` in MALFORMED mode — rejected:
+  then `classify_response`'s malformed branch would have no producer to test.
+- **Consequences:** mypy stays green; the ok/empty/malformed classifier is
+  exercised end-to-end by `--test-tools` and the tool tests.
+
+## ADR-0007 — Audit trail via `operator.add` reducer; helper returns an event
+- **Date:** 2026-07-25 · **Status:** Accepted · **Decider:** Claude (Phase 1)
+- **Context:** Nodes must "return only the fields they modify" (PRD §3.2) yet
+  every node appends exactly one audit event (FR-8). Mutating a shared list breaks
+  state discipline and concurrent-safe merging.
+- **Decision:** `IncidentState.audit_trail` is
+  `Annotated[list[AuditEvent], operator.add]`. `append_audit_event(...)` *returns*
+  an `AuditEvent`; a node appends via `return {"audit_trail": [event]}` and the
+  reducer concatenates. This is the LangGraph idiom.
+- **Consequences:** Phase 2 nodes follow one uniform append pattern; audit
+  completeness is checkable per node.
+
+## ADR-0008 — Relax lint/type strictness for tests only
+- **Date:** 2026-07-25 · **Status:** Accepted · **Decider:** Claude (Phase 1)
+- **Context:** Test assertions/parametrize rows run long, and pytest
+  fixtures/parametrize values fight strict signature typing.
+- **Decision:** ruff ignores `E501` under `tests/**`; mypy sets
+  `disallow_untyped_defs = false` for `tests.*`. **Product code stays fully
+  strict** (100-char lines, typed defs). Test correctness is validated by running
+  them.
+- **Alternatives:** wrap every long test line / annotate every test fn — rejected
+  as noise with no safety benefit.
+- **Consequences:** `ruff` and `mypy` are clean repo-wide without diluting the
+  product-code bar.

@@ -1,14 +1,32 @@
 """Tools package — mock observability/notification tools with injectable failures.
 
-Each mock tool exposes at least 3 configurable failure modes (timeout, rate_limit,
-empty, malformed) so the adaptive failure classifier can be exercised end-to-end.
-Real MCP tools (e.g. Gmail) are added in Phase 3.
-
-Contents (implemented in Phase 1 — Foundation):
-    mock_log_api.py           -- MockLogAPI (WI-02)
-    mock_runbook_search.py    -- MockRunbookSearch, keyword matching (WI-03)
-    mock_github_api.py        -- MockGitHubAPI, deployment history (WI-04)
-    mock_notification.py      -- MockNotificationService (WI-05)
-
-Status: PLACEHOLDER — see docs/PHASES.md (Phase 1, WI-02..WI-05).
+Each mock tool exposes failure modes (timeout, rate_limit, auth, empty, malformed)
+so the adaptive failure classifier can be exercised end-to-end. Real MCP tools
+(e.g. Gmail) are added in Phase 3.
 """
+
+from tools.base import FailureMode
+from tools.exceptions import (
+    AuthError,
+    MalformedResponseError,
+    RateLimitError,
+    ToolError,
+    ToolTimeoutError,
+)
+from tools.mock_github_api import MockGitHubAPI
+from tools.mock_log_api import MockLogAPI
+from tools.mock_notification import MockNotificationService
+from tools.mock_runbook_search import MockRunbookSearch
+
+__all__ = [
+    "FailureMode",
+    "MockLogAPI",
+    "MockRunbookSearch",
+    "MockGitHubAPI",
+    "MockNotificationService",
+    "ToolError",
+    "ToolTimeoutError",
+    "RateLimitError",
+    "AuthError",
+    "MalformedResponseError",
+]

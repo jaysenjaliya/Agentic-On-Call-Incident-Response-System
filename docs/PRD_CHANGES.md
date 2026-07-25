@@ -14,6 +14,7 @@ document — with the authorizing decision.
 | C-01 | §2.3 Language: Python 3.11+ | Clarification | Targeting Python **3.12** (local runtime); satisfies the 3.11+ floor. | ADR-0003 |
 | C-02 | §6 tooling implied pip/venv | Deviation (Flexible) | Using **uv** instead. Env management is not locked. | ADR-0003 |
 | C-03 | Path references (`state/schemas.py`, `main.py`, …) | Clarification | Adopted a **flat package layout** matching these literal paths rather than a `src/` layout. File organization is Flexible (§4.1). | ADR-0005 |
+| C-04 | §2.3 LangGraph ≥0.2.0, LangChain ≥0.3.0 | Clarification | Resolved to **LangGraph 1.2.9 / LangChain 1.3.14** (current majors). Both satisfy the `≥` floors; the PRD specifies minimums, not pins. Phase 2 wiring will use the 1.x `StateGraph` API. | Phase 1 (WI env) |
 
 ---
 

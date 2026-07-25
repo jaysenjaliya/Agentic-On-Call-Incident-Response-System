@@ -1,0 +1,10 @@
+{
+  "incident_id": "INC-002",
+  "service_name": "search-api",
+  "metric": "memory_usage_pct",
+  "threshold_violation": "memory_usage 96% exceeded threshold 85%, pods OOM-restarting",
+  "timestamp": "2026-07-25T01:35:00Z",
+  "description": "search-api pods hitting OOM and restarting in a loop. Heap growth correlates with a new in-memory result cache introduced in deploy c0ffee1. Classic memory leak.",
+  "expected_outcome": "resolved",
+  "notes": "Auto-resolvable, different root cause: matches runbook RB-102 (memory leak / OOM); regression deploy c0ffee1 present."
+}

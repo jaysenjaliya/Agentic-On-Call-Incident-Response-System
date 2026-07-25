@@ -1,0 +1,10 @@
+{
+  "incident_id": "INC-001",
+  "service_name": "checkout",
+  "metric": "error_rate",
+  "threshold_violation": "error_rate 34% exceeded threshold 5% for 3m",
+  "timestamp": "2026-07-25T02:01:00Z",
+  "description": "Checkout service throwing 500s. Logs show 'connection pool exhausted' and psycopg2 OperationalError. A deploy 16 minutes earlier reduced the DB pool size.",
+  "expected_outcome": "resolved",
+  "notes": "Auto-resolvable: matches runbook RB-101 (DB connection pool exhaustion); regression deploy a1b2c3d present."
+}
