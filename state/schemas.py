@@ -145,7 +145,10 @@ class IncidentState(TypedDict):
     is_terminated: bool               # kill switch fired
 
     # ---- (5) LOGGING: audit trail + DLQ + trajectory ----
-    audit_trail: Annotated[list[AuditEvent], operator.add]
+    # Audit events are stored as plain dicts (AuditEvent.model_dump()) so the whole
+    # state is checkpoint-/JSON-native (SQLite checkpointer + DLQ). The AuditEvent
+    # Pydantic model is still the constructor/validator (see utils.audit_trail).
+    audit_trail: Annotated[list[dict[str, Any]], operator.add]
     trajectory_summary: str           # reserved for Phase 5 stretch (WI-39)
     dead_lettered: bool
     dlq_reference: str | None      # path/id of the DLQ entry, if written

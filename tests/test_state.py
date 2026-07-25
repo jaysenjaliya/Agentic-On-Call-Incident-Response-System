@@ -54,7 +54,7 @@ class TestCreateInitialState:
     def test_mutating_returned_state_does_not_touch_defaults(self) -> None:
         # Each call must produce independent mutable containers.
         s1 = create_initial_state(SAMPLE_ALERT)
-        s1["audit_trail"].append(AuditEvent(node_name="n", action="a"))
+        s1["audit_trail"].append(AuditEvent(node_name="n", action="a").model_dump())
         s2 = create_initial_state(SAMPLE_ALERT)
         assert s2["audit_trail"] == []
 

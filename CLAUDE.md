@@ -44,6 +44,9 @@ text is in `_prd_extracted.txt` (git-ignored scratch). When in doubt, the PDF wi
 - **Python** 3.12 (≥3.11). **Package manager: uv.**
 - **Stack:** LangGraph ≥0.2, LangChain ≥0.3, langchain-openai, Pydantic ≥2,
   LangSmith, langgraph-checkpoint-sqlite.
+- **LLM provider:** selected by `LLM_PROVIDER` in `.env` — `openai` (target, locked)
+  or `groq` (temporary, ADR-0009). Never import a provider directly; call
+  `utils.llm.get_llm()`. Nodes take the model via injection so tests run offline.
 
 ```bash
 uv sync --extra dev          # create/refresh the venv from pyproject + lock

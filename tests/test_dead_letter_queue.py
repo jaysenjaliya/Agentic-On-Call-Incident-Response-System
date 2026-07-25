@@ -6,7 +6,8 @@ import json
 from pathlib import Path
 
 from state import create_initial_state
-from state.schemas import AuditEvent, DeadLetterEntry
+from state.schemas import DeadLetterEntry
+from utils.audit_trail import append_audit_event
 from utils.dead_letter_queue import review_dlq, send_to_dlq
 
 ALERT = {"incident_id": "INC-DLQ", "service_name": "checkout", "metric": "error_rate"}
@@ -17,7 +18,7 @@ def _failed_state():
     state["total_steps"] = 21
     state["last_failure_type"] = "timeout"
     state["last_error"] = "MockLogAPI timed out"
-    state["audit_trail"] = [AuditEvent(node_name="pull_logs", action="tried", error="timeout")]
+    state["audit_trail"] = [append_audit_event("pull_logs", "tried", error="timeout")]
     return state
 
 

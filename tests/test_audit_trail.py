@@ -5,28 +5,28 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from state.schemas import AuditEvent
 from utils.audit_trail import append_audit_event, format_trail_for_human, save_trail_to_file
 
 
 class TestAppendAuditEvent:
-    def test_returns_audit_event_with_fields(self) -> None:
+    def test_returns_event_dict_with_fields(self) -> None:
         event = append_audit_event(
             "pull_logs", "fetched logs", tool_used="MockLogAPI",
             output_summary="6 lines", confidence=0.8, step_number=1,
         )
-        assert isinstance(event, AuditEvent)
-        assert event.node_name == "pull_logs"
-        assert event.tool_used == "MockLogAPI"
-        assert event.confidence == 0.8
-        assert event.step_number == 1
+        assert isinstance(event, dict)
+        assert event["node_name"] == "pull_logs"
+        assert event["tool_used"] == "MockLogAPI"
+        assert event["confidence"] == 0.8
+        assert event["step_number"] == 1
+        assert event["timestamp"]  # populated by the model default
 
     def test_reducer_style_append(self) -> None:
         # Mirrors how a node appends: {"audit_trail": [event]} concatenated via reducer.
-        trail: list[AuditEvent] = []
+        trail: list[dict] = []
         trail = trail + [append_audit_event("a", "did a")]
         trail = trail + [append_audit_event("b", "did b")]
-        assert [e.node_name for e in trail] == ["a", "b"]
+        assert [e["node_name"] for e in trail] == ["a", "b"]
 
 
 class TestFormatTrail:

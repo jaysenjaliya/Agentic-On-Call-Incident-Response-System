@@ -97,3 +97,48 @@ only; supersede rather than delete). Use the `log-decision` skill to add one.
   as noise with no safety benefit.
 - **Consequences:** `ruff` and `mypy` are clean repo-wide without diluting the
   product-code bar.
+
+## ADR-0009 — Temporary LLM provider: Groq (behind a provider abstraction)
+- **Date:** 2026-07-25 · **Status:** Accepted · **Decider:** Project lead
+- **Context:** The OpenAI key was not yet active during Phase 2 (500/connection
+  errors on every OpenAI call). The lead directed using Groq in the meantime. The
+  PRD locks OpenAI (ADR-0001), so this is an approved temporary deviation.
+- **Decision:** Add a one-line-switchable provider abstraction. `LLM_PROVIDER`
+  (`.env`) selects `openai` or `groq`; `utils/llm.get_llm()` builds the right
+  model. Nodes never import a provider. Temporary model: Groq
+  `llama-3.3-70b-versatile` (OpenAI-compatible, supports structured output/tool
+  calling). Target remains OpenAI `gpt-5-nano` (also recorded: the lead chose
+  gpt-5-nano over the PRD's gpt-4o — see C-06/C-08).
+- **Alternatives:** block Phase 2 until OpenAI works (rejected — wasteful);
+  hard-swap to Groq with no abstraction (rejected — makes the OpenAI switch-back
+  costly). Provider abstraction now pays for itself.
+- **Consequences:** Switching back is `LLM_PROVIDER=openai` in `.env`. The factory
+  omits `temperature` for OpenAI reasoning models (gpt-5/o-series) that reject it.
+  Supersedes the "no abstraction" stance in ADR-0001's alternatives.
+
+## ADR-0010 — Store audit events as dicts in state (not model instances)
+- **Date:** 2026-07-25 · **Status:** Accepted · **Decider:** Claude (Phase 2)
+- **Context:** With `AuditEvent` model instances in `state["audit_trail"]`, the
+  LangGraph checkpointer warned it would soon **block** serializing the unregistered
+  type, and the DLQ needed manual conversion. Phase 3 leans hard on the SQLite
+  checkpointer.
+- **Decision:** `audit_trail` stores plain dicts (`AuditEvent.model_dump()`). The
+  `AuditEvent` Pydantic model stays as the constructor/validator in
+  `append_audit_event`. The whole `IncidentState` is now JSON-/checkpoint-native.
+- **Alternatives:** register the type with the msgpack serde (fragile, per-entry
+  config); keep models and set env flags (brittle). Rejected.
+- **Consequences:** Locked-schema representation changed (`list[AuditEvent]` →
+  `list[dict]`); logged as C-07. Trail readers use dict keys. DLQ `_serialize_state`
+  simplified. No checkpoint warnings.
+
+## ADR-0011 — Add MockMetricsAPI as a fifth mock tool
+- **Date:** 2026-07-25 · **Status:** Accepted · **Decider:** Claude (Phase 2)
+- **Context:** FR-2 requires pulling logs AND metrics; Phase 1 shipped four mock
+  tools with no dedicated metrics source.
+- **Decision:** Add `MockMetricsAPI` (same `FailureMode` contract) so `pull_metrics`
+  has an independent second data source — which is what makes graceful degradation
+  (logs-fail/metrics-ok) demonstrable.
+- **Alternatives:** fold metrics into `MockLogAPI` (muddies the two data sources);
+  read metrics off the alert (not "current metrics" per FR-2). Rejected.
+- **Consequences:** Within PRD §4.1 "additional tools" latitude (logged C-08).
+  `--test-tools` now exercises five tools.

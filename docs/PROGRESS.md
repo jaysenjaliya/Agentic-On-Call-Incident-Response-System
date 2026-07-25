@@ -5,6 +5,59 @@ entry: what was done, decisions, blockers, and the next step. Dates are absolute
 
 ---
 
+## 2026-07-25 — Phase 2: Individual Subgraphs → tagged `v0.2.0`
+
+**Done** — all 17 work items (WI-11..WI-27), three subgraphs built and tested.
+
+**LLM provider (ADR-0009 / C-05, lead-directed):** OpenAI key was inactive
+(500/connection errors), so switched to **Groq** (`llama-3.3-70b-versatile`) behind
+a one-line-switchable abstraction: `LLM_PROVIDER` env flag + `utils/llm.get_llm()`.
+Verified Groq structured output live. Nodes never import a provider. Also handled
+the key-security incident: keys had been pasted into the tracked `.env.example`;
+moved to git-ignored `.env`, restored the template (details in that session's notes
+below). LangSmith tracing disabled until Phase 3.
+
+**Subgraphs (all take tools/LLM via dependency injection → unit-testable offline):**
+- **Diagnosis** (`agents/diagnosis.py`): `pull_logs`, `pull_metrics`,
+  `analyze_diagnosis` (LLM, severity rubric), `handle_diagnosis_failure`;
+  conditional routing with graceful degradation (proceed on partial data).
+- **Root cause** (`agents/root_cause.py`): `search_runbooks`, `check_deployments`,
+  `analyze_root_cause` (LLM, calibrated confidence).
+- **Remediation** (`agents/remediation.py`): `evaluate_confidence` (gates on
+  confidence AND severity; P0 never auto-resolves), `execute_fix`, `verify_fix`,
+  `human_review` (HITL via `interrupt_before` + MemorySaver), `escalate`,
+  `close_incident`; three-branch routing.
+- **Shared infra:** `utils/tool_runner.run_tool` (the retry/backoff/classify loop,
+  auth = not retryable), `agents/_common.apply_tool_outcome`, `MockMetricsAPI`
+  (WI-12 / ADR-0011).
+
+**Decisions this phase:** ADR-0009 (Groq provider abstraction), ADR-0010 (store
+audit events as dicts — checkpoint/DLQ-safe; changed the locked schema
+representation, C-07), ADR-0011 (MockMetricsAPI, C-08). PRD notes C-05/C-06 (Groq /
+gpt-5-nano deviate from locked OpenAI-GPT-4o, lead-approved).
+
+**Release-criteria evidence (v0.2.0):**
+- Each subgraph compiles & runs independently on seed incidents.
+- **Live (Groq) 3-subgraph chain:** INC-001 → P1, conf 0.90, RB-101 → **resolved**;
+  INC-002 → RB-102 → **resolved**; INC-003 → P0 → **escalated** (P0 gate overrode a
+  spurious runbook match — the intended safety behaviour).
+- Tool-failure injection: `test_tool_runner` proves retry-then-fail (timeout, 4
+  attempts) and auth = no-retry; subgraph degradation tests prove no crash.
+- Audit completeness: per-subgraph tests assert one event per executed node.
+- Quality bar: **137 pytest passing**, `ruff` clean, `mypy` clean (36 files).
+- HITL: pause-before-`human_review` then approve→resolved / reject→escalated.
+
+**Blockers / notes**
+- OpenAI still pending (key inactive). Switch back is `LLM_PROVIDER=openai` once the
+  key works; gpt-5-nano rejects custom temperature — the factory already handles it.
+
+**Next step**
+- ⏸️ **Paused for project-lead review** at the `v0.2.0` checkpoint.
+- Phase 3 — Supervisor Integration (WI-28..33): wire the 3 subgraphs (Approach B),
+  kill switch, SQLite checkpointer, LangSmith tracing, Gmail MCP escalation, E2E.
+
+---
+
 ## 2026-07-25 — Phase 1: Foundation → tagged `v0.1.0`
 
 **Done** — all 10 work items (WI-01..WI-10):

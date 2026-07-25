@@ -3,13 +3,13 @@
 > **The plan of record.** Update work-item and phase status here as work happens.
 > Status legend: ⬜ Not started · 🟨 In progress · ✅ Done · ⛔ Blocked · ⏭️ Deferred/skipped
 
-**Current phase:** Phase 2 — Individual Subgraphs (not started) · **Latest tag:** `v0.1.0`
+**Current phase:** Phase 3 — Supervisor Integration (not started) · **Latest tag:** `v0.2.0`
 
 | Version | Phase | Days | Milestone | Status |
 |---------|-------|------|-----------|--------|
 | — | 0 · Setup | — | Repo, docs system, CLAUDE.md + skills, uv env | ✅ Done |
 | v0.1.0 | 1 · Foundation | 1–2 | State schema, tools, utilities — all tested | ✅ Done |
-| v0.2.0 | 2 · Subgraphs | 3–6 | Three subgraphs working independently | ⬜ |
+| v0.2.0 | 2 · Subgraphs | 3–6 | Three subgraphs working independently | ✅ Done |
 | v0.3.0 | 3 · Integration | 7–9 | Full pipeline end-to-end + production features | ⬜ |
 | v1.0.0 | 4 · Evaluation | 9–10 | Portfolio-ready with metrics + docs | ⬜ |
 | v1.1.0 | 5 · Stretch | bonus | Trajectory summarization + self-healing supervisor | ⬜ |
@@ -80,40 +80,45 @@ exponential backoff. See `.claude/skills/` for the node-authoring guidance.
 ### Stream A — Diagnosis (`agents/diagnosis.py`)
 | WI | Work item | Prio | Est | Depends | Status |
 |----|-----------|------|-----|---------|--------|
-| WI-11 | `pull_logs` node w/ failure handling | P0 | 0.5d | WI-02, WI-06 | ⬜ |
-| WI-12 | `pull_metrics` node w/ failure handling | P0 | 0.5d | WI-02, WI-06 | ⬜ |
-| WI-13 | `analyze_diagnosis` node (LLM call) | P0 | 1d | WI-11, WI-12 | ⬜ |
-| WI-14 | `handle_diagnosis_failure` node | P0 | 0.5d | WI-06, WI-08 | ⬜ |
-| WI-15 | Wire diagnosis subgraph (conditional edges) | P0 | 0.5d | WI-11..14 | ⬜ |
-| WI-16 | Test diagnosis subgraph in isolation | P0 | 0.5d | WI-15 | ⬜ |
+| WI-11 | `pull_logs` node w/ failure handling | P0 | 0.5d | WI-02, WI-06 | ✅ |
+| WI-12 | `pull_metrics` node w/ failure handling | P0 | 0.5d | WI-02, WI-06 | ✅ |
+| WI-13 | `analyze_diagnosis` node (LLM call) | P0 | 1d | WI-11, WI-12 | ✅ |
+| WI-14 | `handle_diagnosis_failure` node | P0 | 0.5d | WI-06, WI-08 | ✅ |
+| WI-15 | Wire diagnosis subgraph (conditional edges) | P0 | 0.5d | WI-11..14 | ✅ |
+| WI-16 | Test diagnosis subgraph in isolation | P0 | 0.5d | WI-15 | ✅ |
 
 ### Stream B — Root Cause (`agents/root_cause.py`)
 | WI | Work item | Prio | Est | Depends | Status |
 |----|-----------|------|-----|---------|--------|
-| WI-17 | `search_runbooks` node w/ failure handling | P0 | 0.5d | WI-03, WI-06 | ⬜ |
-| WI-18 | `check_deployments` node w/ failure handling | P0 | 0.5d | WI-04, WI-06 | ⬜ |
-| WI-19 | `analyze_root_cause` node (LLM call) | P0 | 1d | WI-17, WI-18 | ⬜ |
-| WI-20 | Wire root cause subgraph (conditional edges) | P0 | 0.5d | WI-17..19 | ⬜ |
-| WI-21 | Test root cause subgraph in isolation | P0 | 0.5d | WI-20 | ⬜ |
+| WI-17 | `search_runbooks` node w/ failure handling | P0 | 0.5d | WI-03, WI-06 | ✅ |
+| WI-18 | `check_deployments` node w/ failure handling | P0 | 0.5d | WI-04, WI-06 | ✅ |
+| WI-19 | `analyze_root_cause` node (LLM call) | P0 | 1d | WI-17, WI-18 | ✅ |
+| WI-20 | Wire root cause subgraph (conditional edges) | P0 | 0.5d | WI-17..19 | ✅ |
+| WI-21 | Test root cause subgraph in isolation | P0 | 0.5d | WI-20 | ✅ |
 
 ### Stream C — Remediation (`agents/remediation.py`)
 | WI | Work item | Prio | Est | Depends | Status |
 |----|-----------|------|-----|---------|--------|
-| WI-22 | `evaluate_confidence` decision node (reads confidence **and** severity) | P0 | 0.5d | WI-09 | ⬜ |
-| WI-23 | `execute_fix` and `verify_fix` nodes | P0 | 1d | WI-22 | ⬜ |
-| WI-24 | `human_review` HITL checkpoint node | P0 | 1d | WI-22 | ⬜ |
-| WI-25 | `escalate` and `close_incident` nodes | P0 | 0.5d | WI-05, WI-07 | ⬜ |
-| WI-26 | Wire remediation subgraph (3-branch routing) | P0 | 1d | WI-22..25 | ⬜ |
-| WI-27 | Test remediation subgraph — all 3 branches | P0 | 0.5d | WI-26 | ⬜ |
+| WI-22 | `evaluate_confidence` decision node (reads confidence **and** severity) | P0 | 0.5d | WI-09 | ✅ |
+| WI-23 | `execute_fix` and `verify_fix` nodes | P0 | 1d | WI-22 | ✅ |
+| WI-24 | `human_review` HITL checkpoint node (`interrupt_before` + MemorySaver) | P0 | 1d | WI-22 | ✅ |
+| WI-25 | `escalate` and `close_incident` nodes | P0 | 0.5d | WI-05, WI-07 | ✅ |
+| WI-26 | Wire remediation subgraph (3-branch routing) | P0 | 1d | WI-22..25 | ✅ |
+| WI-27 | Test remediation subgraph — all 3 branches | P0 | 0.5d | WI-26 | ✅ |
 
-**Release criteria for v0.2.0:**
-- ⬜ Each subgraph compiles & runs independently against seed incidents
-- ⬜ Diagnosis produces `diagnosis_summary` + `severity` for incident_001
-- ⬜ Root cause produces `root_cause_hypothesis` + `confidence` for incident_001
-- ⬜ Remediation routes: high confidence → auto-fix, low → escalate
-- ⬜ Tool-failure injection (timeout) triggers classification + retry, not a crash
-- ⬜ Audit trail contains entries from every node that executed
-- ⬜ Git tag `v0.2.0` created
+**Release criteria for v0.2.0** (all verified — evidence in PROGRESS.md 2026-07-25):
+- ✅ Each subgraph compiles & runs independently against seed incidents
+- ✅ Diagnosis produces `diagnosis_summary` + `severity` for incident_001 (live: P1)
+- ✅ Root cause produces `root_cause_hypothesis` + `confidence` for incident_001 (live: 0.90, RB-101)
+- ✅ Remediation routes: high confidence → auto-fix, low → escalate (+ P0 override, + HITL pause/resume)
+- ✅ Tool-failure injection (timeout) triggers classification + retry, not a crash (`test_tool_runner`, degradation tests)
+- ✅ Audit trail contains entries from every node that executed (audit-completeness tests)
+- ✅ Git tag `v0.2.0` created
+- ✅ Quality bar: 137 pytest passing · `ruff` clean · `mypy` clean (36 files)
+- ✅ **Extra:** live 3-subgraph chain — INC-001/002 → resolved, INC-003 → escalated (Groq)
+
+> **Provider note:** running on **Groq** temporarily (ADR-0009 / C-05); OpenAI is a
+> one-line switch. First LLM node was WI-13.
 
 ---
 

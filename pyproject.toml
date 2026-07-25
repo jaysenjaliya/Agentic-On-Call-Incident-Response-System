@@ -1,6 +1,6 @@
 [project]
 name = "agentic-incident-response"
-version = "0.1.0"
+version = "0.2.0"
 description = "Agentic On-Call Incident Response System — a multi-agent LangGraph system with production-grade failure handling."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -16,6 +16,7 @@ dependencies = [
     "langsmith>=0.1.0",
     "pydantic>=2.0",
     "python-dotenv>=1.0.0",
+    "langchain-groq>=1.1.3",
 ]
 
 [project.optional-dependencies]
@@ -46,9 +47,9 @@ target-version = "py311"
 select = ["E", "F", "I", "UP", "B"]
 
 [tool.ruff.lint.per-file-ignores]
-# Tests favour long, readable assertions and parametrize rows over rigid wrapping;
-# product code stays strict at the 100-char limit.
-"tests/**" = ["E501"]
+# Tests favour long, readable assertions, parametrize rows, and compact
+# semicolon setup lines over rigid wrapping; product code stays strict at 100.
+"tests/**" = ["E501", "E702"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

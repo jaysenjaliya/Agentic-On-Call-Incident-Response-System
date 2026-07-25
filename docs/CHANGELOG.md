@@ -7,7 +7,42 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
-_Nothing yet — Phase 2 (Individual Subgraphs) begins after v0.1.0 review._
+_Nothing yet — Phase 3 (Supervisor Integration) begins after v0.2.0 review._
+
+## [v0.2.0] — 2026-07-25 — Phase 2: Individual Subgraphs
+
+Three subgraphs, each compiled and passing seed incidents independently, built on a
+provider-agnostic LLM layer. Live-verified end-to-end on Groq.
+
+### Added
+- **Diagnosis subgraph** (`agents/diagnosis.py`, WI-11..16): pull_logs, pull_metrics,
+  analyze_diagnosis (LLM + severity rubric), handle_diagnosis_failure; graceful
+  degradation routing.
+- **Root-cause subgraph** (`agents/root_cause.py`, WI-17..21): search_runbooks,
+  check_deployments, analyze_root_cause (LLM + calibrated confidence).
+- **Remediation subgraph** (`agents/remediation.py`, WI-22..27): confidence-gated
+  three-branch routing (auto-fix / human-review / escalate), P0-never-auto-resolves,
+  HITL checkpoint via LangGraph `interrupt_before` + MemorySaver, escalate/close.
+- **LLM provider abstraction** (`utils/llm.py`, `LLM_PROVIDER` env): OpenAI or Groq,
+  one-line switch.
+- **Resilient tool loop** (`utils/tool_runner.py`): classify → retry w/ backoff (max
+  3, auth non-retryable) → structured `ToolOutcome`; `agents/_common.apply_tool_outcome`.
+- **MockMetricsAPI** (5th mock tool) for `pull_metrics`.
+- Tests: +57 (137 total) — every node in isolation + compiled-graph + HITL + retry loop.
+
+### Changed
+- **LLM provider temporarily Groq** (`llama-3.3-70b-versatile`) while the OpenAI key
+  is inactive; OpenAI (`gpt-5-nano`) remains the target (ADR-0009, C-05/C-06).
+- **`audit_trail` now stores dicts** (`AuditEvent.model_dump()`) instead of model
+  instances, for checkpoint/DLQ serializability (ADR-0010, C-07). Locked-schema
+  representation change; `AuditEvent` retained as validator.
+- `--test-tools` now exercises five tools; LangSmith tracing disabled until Phase 3.
+
+### Release criteria
+- All Phase 2 criteria in [PHASES.md](PHASES.md) verified ✅. Live chain: INC-001/002
+  → resolved, INC-003 → escalated.
+
+Git: tagged `v0.2.0`.
 
 ## [v0.1.0] — 2026-07-25 — Phase 1: Foundation
 

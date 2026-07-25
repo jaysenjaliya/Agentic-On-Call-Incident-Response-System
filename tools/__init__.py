@@ -15,12 +15,14 @@ from tools.exceptions import (
 )
 from tools.mock_github_api import MockGitHubAPI
 from tools.mock_log_api import MockLogAPI
+from tools.mock_metrics_api import MockMetricsAPI
 from tools.mock_notification import MockNotificationService
 from tools.mock_runbook_search import MockRunbookSearch
 
 __all__ = [
     "FailureMode",
     "MockLogAPI",
+    "MockMetricsAPI",
     "MockRunbookSearch",
     "MockGitHubAPI",
     "MockNotificationService",

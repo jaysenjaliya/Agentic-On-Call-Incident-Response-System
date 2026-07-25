@@ -22,16 +22,11 @@ from state.schemas import DeadLetterEntry, IncidentState
 def _serialize_state(state: IncidentState) -> dict[str, Any]:
     """Return a JSON-safe copy of the state.
 
-    Everything in ``IncidentState`` is already JSON-serializable except
-    ``audit_trail`` (a list of ``AuditEvent`` models), which is dumped to plain
-    dicts here.
+    Every field in ``IncidentState`` is JSON-native (audit events are stored as
+    dicts, not model instances), so a shallow copy suffices. Kept as a seam in
+    case future fields need conversion.
     """
-    snapshot: dict[str, Any] = dict(state)
-    trail = snapshot.get("audit_trail") or []
-    snapshot["audit_trail"] = [
-        event.model_dump() if hasattr(event, "model_dump") else event for event in trail
-    ]
-    return snapshot
+    return dict(state)
 
 
 def send_to_dlq(

@@ -13,11 +13,18 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
 # Resolve everything relative to this file so the CLI works from any cwd.
 PROJECT_ROOT: Path = Path(__file__).resolve().parent
+
+# Load .env as early as possible so every os.getenv() below sees real values,
+# regardless of which entrypoint imported config first. Idempotent; does not
+# override variables already set in the real environment.
+load_dotenv(PROJECT_ROOT / ".env")
 DATA_DIR: Path = PROJECT_ROOT / "data"
 INCIDENTS_DIR: Path = DATA_DIR / "incidents"
 AUDIT_TRAIL_DIR: Path = DATA_DIR / "audit_trail"
@@ -109,10 +116,20 @@ RESPONSE_MALFORMED: str = "malformed"
 
 
 # ---------------------------------------------------------------------------
-# LLM provider (locked: OpenAI GPT-4o — ADR-0001). Used from Phase 2.
+# LLM provider. Target is OpenAI (locked, ADR-0001); "groq" is a temporary,
+# OpenAI-compatible fallback while the OpenAI key is inactive (ADR-0009).
+# Switching providers is a one-line change: set LLM_PROVIDER in .env.
 # ---------------------------------------------------------------------------
-OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o")
-LLM_TEMPERATURE: float = 0.0  # deterministic-leaning outputs for reproducibility
+LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "openai").lower()
+
+# OpenAI (target provider).
+OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-5-nano")
+
+# Groq (temporary provider). OpenAI-compatible API serving open models.
+GROQ_MODEL: str = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+
+# Deterministic-leaning outputs for reproducible diagnoses/evaluation.
+LLM_TEMPERATURE: float = 0.0
 
 
 # ---------------------------------------------------------------------------

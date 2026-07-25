@@ -23,12 +23,14 @@ from state import IncidentState, create_initial_state
 from tools import (
     MockGitHubAPI,
     MockLogAPI,
+    MockMetricsAPI,
     MockNotificationService,
     MockRunbookSearch,
 )
 from tools.base import FailureMode
 from tools.mock_github_api import DEPLOYMENT_KEYS
 from tools.mock_log_api import LOG_ENTRY_KEYS
+from tools.mock_metrics_api import METRIC_KEYS
 from tools.mock_notification import RECEIPT_KEYS
 from tools.mock_runbook_search import RUNBOOK_KEYS
 from utils import classify_failure, classify_response, review_dlq
@@ -61,6 +63,8 @@ def _tool_specs() -> list[_ToolSpec]:
     """Return (name, factory(mode), invoke(tool), required_keys) for all 4 tools."""
     return [
         ("MockLogAPI", lambda m: MockLogAPI(m), lambda t: t.fetch_logs("checkout"), LOG_ENTRY_KEYS),
+        ("MockMetricsAPI", lambda m: MockMetricsAPI(m),
+         lambda t: t.get_metrics("checkout"), METRIC_KEYS),
         ("MockRunbookSearch", lambda m: MockRunbookSearch(m),
          lambda t: t.search("connection pool exhausted psycopg2 database"), RUNBOOK_KEYS),
         ("MockGitHubAPI", lambda m: MockGitHubAPI(m),
