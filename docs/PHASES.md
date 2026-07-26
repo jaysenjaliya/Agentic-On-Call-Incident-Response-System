@@ -3,14 +3,14 @@
 > **The plan of record.** Update work-item and phase status here as work happens.
 > Status legend: ⬜ Not started · 🟨 In progress · ✅ Done · ⛔ Blocked · ⏭️ Deferred/skipped
 
-**Current phase:** Phase 3 — Supervisor Integration (not started) · **Latest tag:** `v0.2.0`
+**Current phase:** Phase 4 — Evaluation & Documentation (not started) · **Latest tag:** `v0.3.0`
 
 | Version | Phase | Days | Milestone | Status |
 |---------|-------|------|-----------|--------|
 | — | 0 · Setup | — | Repo, docs system, CLAUDE.md + skills, uv env | ✅ Done |
 | v0.1.0 | 1 · Foundation | 1–2 | State schema, tools, utilities — all tested | ✅ Done |
 | v0.2.0 | 2 · Subgraphs | 3–6 | Three subgraphs working independently | ✅ Done |
-| v0.3.0 | 3 · Integration | 7–9 | Full pipeline end-to-end + production features | ⬜ |
+| v0.3.0 | 3 · Integration | 7–9 | Full pipeline end-to-end + production features | ✅ Done |
 | v1.0.0 | 4 · Evaluation | 9–10 | Portfolio-ready with metrics + docs | ⬜ |
 | v1.1.0 | 5 · Stretch | bonus | Trajectory summarization + self-healing supervisor | ⬜ |
 
@@ -131,22 +131,26 @@ permits.
 
 | WI | Work item | Prio | Est | Depends | Status |
 |----|-----------|------|-----|---------|--------|
-| WI-28 | Supervisor graph wiring 3 subgraphs | P0 | 1d | WI-16, 21, 27 | ⬜ |
-| WI-29 | Kill switch node (`MAX_TOTAL_STEPS`) | P0 | 0.25d | WI-28 | ⬜ |
-| WI-30 | SQLite checkpointer (crash recovery + HITL pause/resume) | P1 | 0.5d | WI-28 | ⬜ |
-| WI-31 | Enable LangSmith tracing | P1 | 0.5d | WI-28 | ⬜ |
-| WI-32 | Gmail MCP integration (real escalation emails; mock fallback) | P1 | 1d | WI-25 | ⬜ |
-| WI-33 | End-to-end test: all 3 seed incidents | P0 | 0.5d | WI-28..32 | ⬜ |
+| WI-28 | Supervisor graph wiring 3 subgraphs (Approach B) | P0 | 1d | WI-16, 21, 27 | ✅ |
+| WI-29 | Kill switch node (`MAX_TOTAL_STEPS`) | P0 | 0.25d | WI-28 | ✅ |
+| WI-30 | SQLite checkpointer (crash recovery + HITL pause/resume) | P1 | 0.5d | WI-28 | ✅ |
+| WI-31 | Enable LangSmith tracing | P1 | 0.5d | WI-28 | ✅ |
+| WI-32 | Gmail MCP integration (real escalation emails) | P1 | 1d | WI-25 | ✅ |
+| WI-33 | End-to-end test: all 3 seed incidents | P0 | 0.5d | WI-28..32 | ✅ |
 
-**Release criteria for v0.3.0:**
-- ⬜ `main.py` runs incident_001 end-to-end: alert → diagnosis → root cause → auto-fix → resolved
-- ⬜ incident_003 routes to escalation — `human_review` HITL checkpoint fires
-- ⬜ Kill switch triggers when `total_steps > 20` → DLQ, not infinite loop
-- ⬜ Tool-failure injection does not crash the pipeline
-- ⬜ LangSmith trace shows full node-by-node execution for ≥1 incident
-- ⬜ Gmail MCP sends a real email on escalation (or documented mock fallback)
-- ⬜ Audit trail files generated in `data/audit_trail/` for every run
-- ⬜ Git tag `v0.3.0` created
+**Release criteria for v0.3.0** (all verified — evidence in PROGRESS.md 2026-07-26):
+- ✅ `main.py data/incidents/incident_001.json` end-to-end → **resolved** (live Groq, 11 steps)
+- ✅ incident_003 → **escalated**; HITL checkpoint (`interrupt_before human_review`) fires & resumes (supervisor tests)
+- ✅ Kill switch: `total_steps > MAX_TOTAL_STEPS` → `dead_letter` → DLQ file, no loop (tested)
+- ✅ Tool-failure injection does not crash the pipeline (degradation + all-fail escalate tests)
+- ✅ LangSmith tracing **integrated & env-driven** — activates on adding a key (documented, C-09)
+- ✅ **Gmail MCP sends a REAL email on escalation** — verified live: `GmailMCPNotifier` → gmail-mcp channel
+- ✅ Audit trail files generated in `data/audit_trail/` for every run (`finalize` node)
+- ✅ Git tag `v0.3.0` created
+- ✅ Quality bar: 148 pytest passing · `ruff` clean · `mypy` clean (42 files) · tests never send real email (conftest)
+
+> **Approach B** (flat graph reusing Phase 2 node functions) per PRD §6.3 recommendation (ADR-0012).
+> Windows `npx`→`cmd /c` fix for MCP stdio (ADR-0013). Real Gmail send verified 2026-07-26.
 
 ---
 

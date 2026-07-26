@@ -42,6 +42,12 @@ data/audit_trail/*
 data/dlq/*
 !data/dlq/.gitkeep
 
+# ---- Gmail MCP / Google OAuth secrets (NEVER commit) ----
+gcp-oauth.keys*.json
+credentials.json
+.gmail-mcp/
+*oauth*keys*.json
+
 # ---- Claude Code (local, per-user) ----
 # Shared config (.claude/settings.json, .claude/skills/) IS tracked; local overrides are not.
 .claude/settings.local.json

@@ -191,11 +191,13 @@ def escalate(state: IncidentState, *, notifier: MockNotificationService) -> dict
         f"Runbook: {state.get('matched_runbook_id')}\n"
     )
     error = None
+    receipt: Any = None
     try:
-        notifier.send(config.ESCALATION_EMAIL_TO, subject, body)
+        receipt = notifier.send(config.ESCALATION_EMAIL_TO, subject, body)
     except Exception as exc:  # noqa: BLE001 - notification failure must not strand the incident
         error = f"{type(exc).__name__}: {exc}"
 
+    channel = receipt.get("channel", "unknown") if isinstance(receipt, dict) else "unknown"
     return {
         "total_steps": step,
         "resolution": config.RESOLUTION_ESCALATED,
@@ -203,9 +205,10 @@ def escalate(state: IncidentState, *, notifier: MockNotificationService) -> dict
         "resolution_notes": subject,
         "audit_trail": [
             append_audit_event(
-                "escalate", "escalated to human", tool_used="MockNotificationService",
+                "escalate", "escalated to human", tool_used=type(notifier).__name__,
                 output_summary=(
-                    f"notified {config.ESCALATION_EMAIL_TO}" if not error else "notify failed"
+                    f"notified {config.ESCALATION_EMAIL_TO} via {channel}"
+                    if not error else "notify failed"
                 ),
                 error=error, decision="escalated", step_number=step,
             )

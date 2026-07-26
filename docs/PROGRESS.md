@@ -5,6 +5,54 @@ entry: what was done, decisions, blockers, and the next step. Dates are absolute
 
 ---
 
+## 2026-07-26 — Phase 3: Supervisor Integration & Production Hardening → tagged `v0.3.0`
+
+**Done** — all 6 work items (WI-28..WI-33). Full pipeline live end-to-end.
+
+- **WI-28 Supervisor** (`agents/supervisor.py`): Approach B (ADR-0012) — one flat
+  `StateGraph` reusing every Phase 2 node function, chained diagnosis → root cause →
+  remediation with kill-switch-guarded phase transitions; `finalize` node persists
+  the audit trail per run; `dead_letter` terminal.
+- **WI-29 Kill switch**: `total_steps > MAX_TOTAL_STEPS` → `dead_letter` → DLQ file.
+- **WI-30 SQLite checkpointer** (`make_sqlite_checkpointer`): state persisted after
+  every node; crash-recovery test proves a *fresh* graph resumes a paused run.
+- **WI-31 LangSmith tracing** (`utils/observability.py`): env-driven, auto-activates
+  when a key is present; CLI reports status. Documented (per lead choice, C-09).
+- **WI-32 Gmail MCP** (`utils/notifier.py`, `utils/gmail_mcp.py`): real escalation
+  email via `@gongrzhe/server-gmail-autoauth-mcp` over stdio (langchain-mcp-adapters).
+  **Verified live** — real email delivered to the configured inbox; audit shows
+  `GmailMCPNotifier` via `gmail-mcp`. Windows `npx`→`cmd /c` fix (ADR-0013).
+- **WI-33 E2E**: `main.py <incident.json>` runs the pipeline (HITL `--hitl` resume,
+  audit file each run); `tests/test_supervisor.py` = 11 e2e tests.
+
+**Release-criteria evidence (v0.3.0):**
+- Live: INC-001/002 → **resolved**, INC-003 → **escalated** (real email sent).
+- Kill switch → dead-lettered + DLQ file (tested). Tool-failure injection → no crash.
+- SQLite crash-recovery + HITL pause/resume (tested). Audit files in `data/audit_trail/`.
+- Quality bar: **148 pytest passing**, `ruff` clean, `mypy` clean (42 files).
+
+**Incidents handled this phase (important events):**
+- **Gmail OAuth key hygiene:** a `gcp-oauth.keys.json` sat in the repo root, not
+  ignored → added OAuth/credential patterns to `.gitignore` (never tracked). Keys
+  never reached git.
+- **Test isolation bug (ADR-0014):** with `RUN_MODE=prod` in `.env`, supervisor
+  tests without an injected notifier **sent real emails** during a test run. Fixed
+  with a global `conftest.py` autouse fixture forcing mock notifications, and made
+  the `escalate` audit label truthful.
+
+**Notes**
+- `.env` has `RUN_MODE=prod` + `GMAIL_MCP_ENABLED=true` (real email on escalation).
+  Set `RUN_MODE=mock` for day-to-day dev to avoid sending on every escalation.
+- LangSmith key not yet added → traces inert until then (integration ready).
+
+**Next step**
+- ⏸️ **Paused for project-lead review** at the `v0.3.0` checkpoint.
+- Phase 4 — Evaluation & Documentation (WI-34..38): 17 more incidents (→20),
+  `run_eval.py`, `metrics.py`, and the portfolio README. **This is the `v1.0.0`
+  portfolio-ready release.**
+
+---
+
 ## 2026-07-25 — Phase 2: Individual Subgraphs → tagged `v0.2.0`
 
 **Done** — all 17 work items (WI-11..WI-27), three subgraphs built and tested.

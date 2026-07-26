@@ -29,20 +29,35 @@ class GmailMCPNotifier:
     """Sends escalation email through a Gmail MCP server. Sync ``.send`` facade."""
 
     def __init__(self) -> None:
-        self.command = os.getenv("GMAIL_MCP_COMMAND", "npx")
-        self.args = shlex.split(
+        raw_command = os.getenv("GMAIL_MCP_COMMAND", "npx")
+        raw_args = shlex.split(
             os.getenv("GMAIL_MCP_ARGS", "-y @gongrzhe/server-gmail-autoauth-mcp")
         )
+        # On Windows, npx/npm are .cmd scripts that asyncio's subprocess_exec cannot
+        # launch directly (WinError 193); route them through cmd.exe.
+        if os.name == "nt":
+            self.command = "cmd"
+            self.args = ["/c", raw_command, *raw_args]
+        else:
+            self.command = raw_command
+            self.args = raw_args
         self.send_tool = os.getenv("GMAIL_MCP_SEND_TOOL", "send_email")
+
+    def _client(self) -> Any:
+        """Build a stdio MCP client for the Gmail server."""
+        from langchain_mcp_adapters.client import MultiServerMCPClient
+
+        return MultiServerMCPClient({
+            "gmail": {"command": self.command, "args": self.args, "transport": "stdio"}
+        })
+
+    async def list_tools(self) -> Any:
+        """Return the tools the Gmail MCP server exposes (for connectivity checks)."""
+        return await self._client().get_tools()
 
     async def _send_async(self, to: str, subject: str, body: str) -> Any:
         """Connect to the MCP server, find the send tool, and invoke it."""
-        from langchain_mcp_adapters.client import MultiServerMCPClient
-
-        client = MultiServerMCPClient({
-            "gmail": {"command": self.command, "args": self.args, "transport": "stdio"}
-        })
-        tools = await client.get_tools()
+        tools = await self._client().get_tools()
         tool = next((t for t in tools if t.name == self.send_tool), None)
         if tool is None:
             available = ", ".join(t.name for t in tools)

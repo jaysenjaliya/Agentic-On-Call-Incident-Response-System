@@ -7,7 +7,43 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
-_Nothing yet — Phase 3 (Supervisor Integration) begins after v0.2.0 review._
+_Nothing yet — Phase 4 (Evaluation & Documentation) begins after v0.3.0 review._
+
+## [v0.3.0] — 2026-07-26 — Phase 3: Supervisor Integration & Production Hardening
+
+The three subgraphs wired into one supervised pipeline with production features.
+Verified live end-to-end (Groq + real Gmail MCP).
+
+### Added
+- **Supervisor pipeline** (`agents/supervisor.py`, WI-28): flat graph (Approach B)
+  reusing Phase 2 nodes; kill switch (WI-29) → dead-letter on `total_steps` blow-out;
+  `finalize` persists the audit trail every run.
+- **SQLite checkpointer** (WI-30): crash recovery + HITL pause/resume; a fresh graph
+  resumes a paused run from disk.
+- **LangSmith tracing** (`utils/observability.py`, WI-31): env-driven; activates on
+  adding a key.
+- **Real Gmail MCP escalation** (`utils/notifier.py`, `utils/gmail_mcp.py`, WI-32):
+  sends a real email via an MCP server; mock fallback when disabled. **Verified live.**
+- **End-to-end CLI**: `python main.py <incident.json>` with `--hitl approve|reject`.
+- Tests: +11 e2e (`test_supervisor.py`) → 148 total; `tests/conftest.py` guarantees
+  no test sends real email.
+
+### Changed
+- `escalate` audit event now records the real notifier (`type(notifier).__name__`)
+  and delivery channel instead of a hard-coded label (ADR-0014).
+
+### Fixed
+- Windows: MCP stdio servers launched via `cmd /c` (WinError 193) (ADR-0013).
+- Test isolation: `.env` `RUN_MODE=prod` no longer causes tests to send real email.
+
+### Security
+- `.gitignore` now excludes Google OAuth/credential files (`gcp-oauth.keys*.json`,
+  `credentials.json`, `.gmail-mcp/`). No secrets were ever committed.
+
+### Release criteria
+- All Phase 3 criteria in [PHASES.md](PHASES.md) verified ✅.
+
+Git: tagged `v0.3.0`.
 
 ## [v0.2.0] — 2026-07-25 — Phase 2: Individual Subgraphs
 

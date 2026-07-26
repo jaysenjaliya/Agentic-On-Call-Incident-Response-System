@@ -22,10 +22,16 @@ ALERT = {"incident_id": "INC-T", "service_name": "checkout",
 
 
 @pytest.fixture(autouse=True)
-def _redirect_dirs(monkeypatch, tmp_path):
-    """Send audit-trail and DLQ writes to a temp dir for every test here."""
+def _isolate(monkeypatch, tmp_path):
+    """Redirect writes to tmp AND force mock notifications.
+
+    Critical: forces RUN_MODE=mock so no test ever spawns the Gmail MCP server or
+    sends a real email, regardless of what the developer's .env contains.
+    """
     monkeypatch.setattr(config, "AUDIT_TRAIL_DIR", tmp_path / "audit")
     monkeypatch.setattr(config, "DLQ_DIR", tmp_path / "dlq")
+    monkeypatch.setattr(config, "RUN_MODE", "mock")
+    monkeypatch.setattr(config, "GMAIL_MCP_ENABLED", False)
     return tmp_path
 
 

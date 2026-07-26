@@ -142,3 +142,37 @@ only; supersede rather than delete). Use the `log-decision` skill to add one.
   read metrics off the alert (not "current metrics" per FR-2). Rejected.
 - **Consequences:** Within PRD §4.1 "additional tools" latitude (logged C-08).
   `--test-tools` now exercises five tools.
+
+## ADR-0012 — Supervisor: Approach B (flat graph reusing Phase 2 node functions)
+- **Date:** 2026-07-26 · **Status:** Accepted · **Decider:** Claude (per PRD §6.3)
+- **Context:** Two ways to wire the supervisor: A = embed the compiled Phase 2
+  subgraphs as nodes; B = one flat graph with all nodes + phase routing. PRD §6.3
+  recommends starting with B (faster to build/debug).
+- **Decision:** Approach B. `agents/supervisor.py` imports the Phase 2 node
+  *functions* (not the compiled subgraphs) and wires them into one `StateGraph`
+  with kill-switch-guarded phase transitions and a single checkpointer.
+- **Alternatives:** Approach A — deferred; nesting subgraph checkpointers/interrupts
+  under a parent checkpointer is fiddly. A single flat graph gives one clean
+  checkpointer + one `interrupt_before` for HITL.
+- **Consequences:** All Phase 2 node logic reused verbatim; one SQLite checkpointer
+  covers crash recovery AND HITL resume. Refactor to A remains possible later.
+
+## ADR-0013 — Windows: launch MCP stdio servers via `cmd /c`
+- **Date:** 2026-07-26 · **Status:** Accepted · **Decider:** Claude (Phase 3)
+- **Context:** `npx` on Windows is `npx.cmd`; asyncio's `subprocess_exec` (used by
+  the MCP stdio client) can't launch `.cmd` files directly → `WinError 193`.
+- **Decision:** `GmailMCPNotifier` detects `os.name == "nt"` and wraps the command
+  as `cmd /c <command> <args>`. POSIX unchanged.
+- **Consequences:** Gmail MCP server starts on Windows; verified live (19 tools,
+  real send). Env overrides (`GMAIL_MCP_COMMAND/ARGS`) still honoured.
+
+## ADR-0014 — Truthful notifier audit + global test mock-notification guard
+- **Date:** 2026-07-26 · **Status:** Accepted · **Decider:** Claude (Phase 3)
+- **Context:** The `escalate` node hard-coded `tool_used="MockNotificationService"`,
+  so the audit lied when Gmail MCP was active. Worse, supervisor tests that didn't
+  inject a notifier picked up `RUN_MODE=prod` from `.env` and **sent real emails**.
+- **Decision:** (1) `escalate` records `type(notifier).__name__` and the receipt
+  `channel`. (2) `tests/conftest.py` autouse fixture forces `RUN_MODE=mock` +
+  `GMAIL_MCP_ENABLED=false` for **every** test — no test can spawn MCP or send email.
+- **Consequences:** Audit trail is accurate (`GmailMCPNotifier` via `gmail-mcp`).
+  Test suite is hermetic and fast (~2.5s) regardless of developer `.env`.

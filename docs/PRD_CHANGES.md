@@ -19,6 +19,8 @@ document — with the authorizing decision.
 | C-06 | §2.3/§4.1 **model = GPT-4o** (Locked) | Deviation | OpenAI target model is **gpt-5-nano** (lead's choice), not gpt-4o. | **Project lead** · ADR-0009 |
 | C-07 | v0.1.0 locked schema: `audit_trail: list[AuditEvent]` | Clarification (representation) | Stored as `list[dict]` (`AuditEvent.model_dump()`) for checkpoint/DLQ serializability; `AuditEvent` model retained as validator. | ADR-0010 |
 | C-08 | §2.3 four mock tools | Addition (Flexible) | Added **MockMetricsAPI** (5th tool) for `pull_metrics`. §4.1 permits additional tools. | ADR-0011 |
+| C-09 | §6.3 "Enable LangSmith tracing" | Clarification | Tracing is **integrated and env-driven** (auto-activates when `LANGCHAIN_API_KEY` is set); left inert pending the lead adding a key. Criterion met as documented setup. | Project lead (Phase 3 Q) |
+| C-10 | §6.3 "incident_003 … human_review HITL checkpoint fires" | Clarification | INC-003 is P0 → escalates immediately (FR-4: P0 never auto-resolves), so it does **not** pass through `human_review`. HITL firing + pause/resume is demonstrated for mid-confidence (0.50–0.85) runs instead (supervisor tests + CLI `--hitl`). | ADR-0012 |
 
 ---
 
