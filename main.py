@@ -198,15 +198,81 @@ def review_dlq_cmd() -> bool:
 
 
 # ---------------------------------------------------------------------------
+# run an incident end-to-end (Phase 3)
+# ---------------------------------------------------------------------------
+def run_incident(path: str, hitl: str | None = None) -> bool:
+    """Run one incident through the full supervisor pipeline (WI-28..33).
+
+    Loads the alert JSON, runs it through diagnosis → root cause → remediation
+    with the SQLite checkpointer and (if configured) LangSmith tracing, and prints
+    the outcome. If the run pauses at the HITL checkpoint, ``hitl`` (approve/reject)
+    resumes it; otherwise it stays paused (resume later with --hitl).
+    """
+    import json
+    from pathlib import Path
+
+    from agents.supervisor import build_supervisor_graph, make_sqlite_checkpointer
+    from state import create_initial_state
+    from utils.audit_trail import format_trail_for_human
+    from utils.observability import run_config, tracing_status
+
+    alert_path = Path(path)
+    if not alert_path.exists():
+        print(f"ERROR: incident file not found: {alert_path}")
+        return False
+
+    config.ensure_runtime_dirs()
+    enabled, detail = tracing_status()
+    print(f"== run incident: {alert_path.name} ==")
+    print(f"LLM provider: {config.LLM_PROVIDER} | LangSmith tracing: {detail}\n")
+
+    alert = json.loads(alert_path.read_text(encoding="utf-8"))
+    state = create_initial_state(alert)
+    graph = build_supervisor_graph(checkpointer=make_sqlite_checkpointer())
+    cfg = run_config(state["incident_id"], thread_id=state["incident_id"])
+
+    out = graph.invoke(state, cfg)
+
+    # Handle a HITL pause (interrupt_before human_review).
+    if graph.get_state(cfg).next == ("human_review",):
+        print("-- PAUSED at human_review (HITL checkpoint) --")
+        print(format_trail_for_human(out["audit_trail"]))
+        conf = out.get("root_cause_confidence", 0)
+        print(f"\nRoot cause: {out.get('root_cause_hypothesis')} "
+              f"(confidence {conf:.2f}, severity {out.get('severity')})")
+        if hitl in ("approve", "reject"):
+            print(f"\nApplying human decision: {hitl}")
+            graph.update_state(cfg, {"human_decision": hitl})
+            out = graph.invoke(None, cfg)
+        else:
+            print("\nRun is paused. Resume with:  "
+                  f"python main.py {path} --hitl approve   (or reject)")
+            return True
+
+    print(f"RESOLUTION: {out['resolution'].upper()}  |  steps: {out['total_steps']}  "
+          f"|  severity: {out['severity']}  |  confidence: {out['root_cause_confidence']:.2f}")
+    print(f"audit trail: {config.AUDIT_TRAIL_DIR / (out['incident_id'] + '_audit.json')} "
+          f"({len(out['audit_trail'])} events)")
+    if out.get("dlq_reference"):
+        print(f"dead-lettered: {out['dlq_reference']}")
+    return True
+
+
+# ---------------------------------------------------------------------------
 # entry point
 # ---------------------------------------------------------------------------
 def main() -> None:
     """Parse CLI args and dispatch. Exits non-zero if a test command fails."""
     parser = argparse.ArgumentParser(
         prog="incident-response",
-        description="Agentic On-Call Incident Response System (Phase 1 CLI).",
+        description="Agentic On-Call Incident Response System.",
     )
-    group = parser.add_mutually_exclusive_group(required=True)
+    parser.add_argument("incident", nargs="?",
+                        help="Path to an incident JSON to run end-to-end "
+                             "(e.g. data/incidents/incident_001.json).")
+    parser.add_argument("--hitl", choices=["approve", "reject"], default=None,
+                        help="Resume a HITL-paused incident with this decision.")
+    group = parser.add_mutually_exclusive_group()
     group.add_argument("--test-tools", action="store_true",
                        help="Exercise all mock tools + failure modes.")
     group.add_argument("--test-state", action="store_true",
@@ -220,8 +286,13 @@ def main() -> None:
         ok = test_tools()
     elif args.test_state:
         ok = test_state()
-    else:
+    elif args.review_dlq:
         ok = review_dlq_cmd()
+    elif args.incident:
+        ok = run_incident(args.incident, hitl=args.hitl)
+    else:
+        parser.error("provide an incident file to run, or one of "
+                     "--test-tools/--test-state/--review-dlq")
 
     sys.exit(0 if ok else 1)
 
