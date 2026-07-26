@@ -1,0 +1,10 @@
+{
+  "incident_id": "INC-007",
+  "service_name": "cart-service",
+  "metric": "http_5xx_rate",
+  "threshold_violation": "5xx rate 41% exceeded 2% shortly after deploy",
+  "timestamp": "2026-07-26T02:00:00Z",
+  "description": "Elevated 5xx immediately after a deployment; unhandled exceptions in the request handler. Looks like a regression.",
+  "category": "auto_resolve",
+  "expected_outcome": "resolved"
+}

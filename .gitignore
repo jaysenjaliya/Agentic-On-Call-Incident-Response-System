@@ -62,3 +62,4 @@ Thumbs.db
 # ---- Scratch ----
 _prd_extracted.txt
 scratch/
+evaluation/_*.log

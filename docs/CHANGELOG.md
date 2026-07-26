@@ -7,7 +7,42 @@ All notable changes to this project are documented here. Format follows
 
 ## [Unreleased]
 
-_Nothing yet — Phase 4 (Evaluation & Documentation) begins after v0.3.0 review._
+_Optional Phase 5 stretch goals (trajectory summarization, self-healing supervisor)._
+
+## [v1.0.0] — 2026-07-26 — Phase 4: Evaluation & Documentation — **portfolio-ready**
+
+The system evaluated at scale and packaged for the portfolio.
+
+### Added
+- **20 synthetic incidents** (`data/incidents/`): 10 auto-resolvable, 5 escalation,
+  5 with injected tool failures — each labeled with category + expected outcome.
+- **Fixture world** (`tools/fixtures.py`): per-service symptom logs/metrics/deploys
+  so incidents are distinguishable; the three data tools read it by default.
+- **Evaluation harness** (`evaluation/run_eval.py`): runs all 20 live, mock
+  notifications, per-incident failure injection, rate-limit pacing, simulated HITL
+  reviewer; writes `evaluation/results.json`.
+- **Metrics** (`evaluation/metrics.py`): resolution rate, escalation precision/recall,
+  failure-recovery rate, audit completeness, DLQ capture, avg steps + Markdown table.
+- **Professional README**: overview, Mermaid architecture diagram, novelty table,
+  evaluation table (with honest rate-limit note), setup, CLI/demo, tech stack.
+- Tests: +9 evaluation tests → **157 total**.
+
+### Changed
+- Runbook search query uses deterministic signals (raw logs + alert), not LLM
+  free-text — eliminates spurious matches on novel incidents (ADR-0016).
+- LLM structured calls retry transient errors (rate limits) with backoff (ADR-0017).
+
+### Evaluation
+- Live run: 11/11 auto-resolve → resolved (conf 0.90); 5/5 escalations correct.
+  recall/failure-recovery/audit/DLQ/avg-steps all meet target. Resolution 0.79 &
+  precision 0.67 depressed by Groq free-tier token exhaustion degrading 3
+  tool-failure incidents to safe escalation (C-11); a budget-available run met all 7
+  targets. Shipped with a transparent caveat by project-lead decision.
+
+### Release criteria
+- All Phase 4 criteria in [PHASES.md](PHASES.md) verified ✅.
+
+Git: tagged `v1.0.0` — the portfolio-ready release.
 
 ## [v0.3.0] — 2026-07-26 — Phase 3: Supervisor Integration & Production Hardening
 

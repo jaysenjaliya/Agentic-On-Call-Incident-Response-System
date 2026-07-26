@@ -1,6 +1,6 @@
 {
-  "incident_id": "INC-001",
-  "service_name": "checkout",
+  "incident_id": "INC-010",
+  "service_name": "user-profile",
   "metric": "error_rate",
   "threshold_violation": "error_rate 34% exceeded 5% threshold for 3m",
   "timestamp": "2026-07-26T02:00:00Z",

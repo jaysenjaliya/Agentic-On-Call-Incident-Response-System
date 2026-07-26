@@ -52,4 +52,5 @@ class MockLogAPI:
             return []
         if self.failure_mode == FailureMode.MALFORMED:
             return MALFORMED_PAYLOAD
-        return [{"service": service_name, **entry} for entry in _DEFAULT_LOGS[:limit]]
+        from tools import fixtures
+        return fixtures.logs_for(service_name)[:limit]

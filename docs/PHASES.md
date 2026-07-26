@@ -3,7 +3,7 @@
 > **The plan of record.** Update work-item and phase status here as work happens.
 > Status legend: ⬜ Not started · 🟨 In progress · ✅ Done · ⛔ Blocked · ⏭️ Deferred/skipped
 
-**Current phase:** Phase 4 — Evaluation & Documentation (not started) · **Latest tag:** `v0.3.0`
+**Current phase:** Phase 5 — Stretch (optional) · **Latest tag:** `v1.0.0` — **portfolio-ready**
 
 | Version | Phase | Days | Milestone | Status |
 |---------|-------|------|-----------|--------|
@@ -11,7 +11,7 @@
 | v0.1.0 | 1 · Foundation | 1–2 | State schema, tools, utilities — all tested | ✅ Done |
 | v0.2.0 | 2 · Subgraphs | 3–6 | Three subgraphs working independently | ✅ Done |
 | v0.3.0 | 3 · Integration | 7–9 | Full pipeline end-to-end + production features | ✅ Done |
-| v1.0.0 | 4 · Evaluation | 9–10 | Portfolio-ready with metrics + docs | ⬜ |
+| v1.0.0 | 4 · Evaluation | 9–10 | Portfolio-ready with metrics + docs | ✅ Done |
 | v1.1.0 | 5 · Stretch | bonus | Trajectory summarization + self-healing supervisor | ⬜ |
 
 **Critical path:** WI-01 → WI-11/17/22 → WI-15/20/26 → WI-28 → WI-33 → WI-38.
@@ -161,24 +161,27 @@ portfolio-ready release.**
 
 | WI | Work item | Prio | Est | Depends | Status |
 |----|-----------|------|-----|---------|--------|
-| WI-34 | 17 additional synthetic incidents (→ 20 total) | P1 | 1d | WI-10 | ⬜ |
-| WI-35 | `evaluation/run_eval.py` (runs all 20) | P1 | 1d | WI-33 | ⬜ |
-| WI-36 | `evaluation/metrics.py` (compute metrics) | P1 | 0.5d | WI-35 | ⬜ |
-| WI-37 | Run full evaluation, document results | P1 | 0.5d | WI-36 | ⬜ |
-| WI-38 | Professional README with all sections | P0 | 1d | WI-37 | ⬜ |
+| WI-34 | 17 additional synthetic incidents (→ 20 total) | P1 | 1d | WI-10 | ✅ |
+| WI-35 | `evaluation/run_eval.py` (runs all 20) | P1 | 1d | WI-33 | ✅ |
+| WI-36 | `evaluation/metrics.py` (compute metrics) | P1 | 0.5d | WI-35 | ✅ |
+| WI-37 | Run full evaluation, document results | P1 | 0.5d | WI-36 | ✅ |
+| WI-38 | Professional README with all sections | P0 | 1d | WI-37 | ✅ |
 
 **Incident mix:** 10 auto-resolvable · 5 escalation-required · 5 with injected tool failures.
 
-**Metrics + targets:** resolution rate >80% · escalation precision >85% · escalation
-recall >90% · failure recovery >80% · audit completeness 100% · DLQ capture 100% ·
-avg steps to resolution <12.
+**Release criteria for v1.0.0** (verified — see PROGRESS.md 2026-07-26):
+- ✅ 20 incidents run through the agent live, results logged (`evaluation/results.json`)
+- ✅ All 7 metrics computed and documented in README
+- ✅ README has all sections (architecture, novelty, evaluation, demo, setup)
+- ✅ Clean git log with meaningful commit messages across all phases (5 phase commits + tags)
+- ✅ Git tag `v1.0.0` created
+- ✅ Quality bar: 157 pytest passing · `ruff` clean · `mypy` clean
 
-**Release criteria for v1.0.0:**
-- ⬜ 20 incidents run through the agent, results logged
-- ⬜ All metrics computed and documented in README
-- ⬜ README has all sections (architecture, novelty, evaluation, demo, setup)
-- ⬜ Clean git log with meaningful commit messages across all phases
-- ⬜ Git tag `v1.0.0` created
+**Metrics (live run):** recall 1.00 · failure-recovery 1.00 · audit-completeness 1.00 ·
+DLQ 1.00 · avg-steps 11.1 all **meet target**; resolution 0.79 & precision 0.67 were
+depressed by Groq **free-tier token exhaustion** degrading 3 tool-failure incidents to
+safe escalation late in the batch (C-11). A budget-available run met all 7 targets
+(resolution 0.93, precision 0.86). See README evaluation note.
 
 ---
 

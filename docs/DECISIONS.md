@@ -176,3 +176,45 @@ only; supersede rather than delete). Use the `log-decision` skill to add one.
   `GMAIL_MCP_ENABLED=false` for **every** test — no test can spawn MCP or send email.
 - **Consequences:** Audit trail is accurate (`GmailMCPNotifier` via `gmail-mcp`).
   Test suite is hermetic and fast (~2.5s) regardless of developer `.env`.
+
+## ADR-0015 — Shared per-service fixture "world" for the tools
+- **Date:** 2026-07-26 · **Status:** Accepted · **Decider:** Claude (Phase 4)
+- **Context:** Every service previously returned the *same* DB-pool logs, so a
+  20-incident eval would feed identical signals for a memory-leak and a novel
+  incident — biasing the LLM and making outcomes meaningless.
+- **Decision:** `tools/fixtures.py` maps each service → a symptom → coherent
+  logs/metrics/deploys. Auto-resolvable symptoms carry a runbook's keywords (+ a
+  suspect deploy); "novel_*" symptoms carry none (→ no match → escalate). The three
+  data tools read fixtures by default (override kept for tests).
+- **Consequences:** Distinguishable, reproducible incidents. Mock data content is
+  flexible per PRD §4.1.
+
+## ADR-0016 — Runbook search uses deterministic signals, not LLM prose
+- **Date:** 2026-07-26 · **Status:** Accepted · **Decider:** Claude (Phase 4)
+- **Context:** Building the runbook query from the LLM's free-text diagnosis let it
+  hallucinate a runbook keyword (e.g. "latency") for a novel incident → spurious
+  match → misrouted away from escalation. Observed live: escalation recall 0.67.
+- **Decision:** `_build_runbook_query` uses only raw alert fields + raw log
+  messages (deterministic), not `diagnosis_summary`/`failing_component`.
+- **Consequences:** Novel incidents reliably match no runbook → escalate. Recall
+  → 1.00. Root-cause tests unchanged.
+
+## ADR-0017 — Retry transient LLM errors (rate limits) with backoff
+- **Date:** 2026-07-26 · **Status:** Accepted · **Decider:** Claude (Phase 4)
+- **Context:** A burst of ~40 eval LLM calls tripped Groq rate limits; nodes
+  degraded to defaults (severity P3, confidence 0.0) and escalated everything.
+- **Decision:** `utils.llm.invoke_structured` wraps the structured LLM call and
+  retries **only transient** errors (429/overload/5xx) with linear backoff;
+  non-transient errors still raise → node degradation. Eval also paces incidents.
+- **Consequences:** The pipeline absorbs provider rate-limiting; eval results are
+  stable. Applies to both LLM nodes.
+
+## ADR-0018 — Simulated reviewer at the HITL checkpoint during evaluation
+- **Date:** 2026-07-26 · **Status:** Accepted · **Decider:** Claude (Phase 4)
+- **Context:** Mid-confidence incidents pause at `human_review`; automated eval
+  can't block on a human. Blanket-approving masked genuine escalations.
+- **Decision:** In `run_eval`, the simulated reviewer **approves** only when a
+  runbook matched (a known remedy exists), otherwise **rejects** → escalate —
+  mirroring real reviewer judgment. Recorded per incident (`hitl_decision`).
+- **Consequences:** HITL incidents resolve/escalate sensibly; eval never stalls.
+  This policy is documented in the README's evaluation notes.

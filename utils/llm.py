@@ -12,6 +12,7 @@ graph or running live.
 
 from __future__ import annotations
 
+import time
 from typing import TYPE_CHECKING, Any
 
 import config
@@ -21,6 +22,45 @@ if TYPE_CHECKING:  # avoid importing heavy/optional providers at module load
 
 # OpenAI reasoning-family models that reject a non-default ``temperature``.
 _OPENAI_FIXED_TEMPERATURE_PREFIXES: tuple[str, ...] = ("gpt-5", "o1", "o3", "o4")
+
+# Substrings that mark a transient LLM error worth retrying (rate limits, overload,
+# provider blips). Everything else fails fast so the node's fallback path runs.
+_TRANSIENT_LLM_HINTS: tuple[str, ...] = (
+    "429", "rate limit", "rate_limit", "too many requests", "overloaded",
+    "temporarily", "unavailable", "timeout", "timed out", "503", "502", "500",
+)
+
+
+def invoke_structured(
+    llm: BaseChatModel,
+    schema: type,
+    prompt: str,
+    *,
+    max_retries: int = 5,
+    base_delay: float = 5.0,
+    sleep: Any = time.sleep,
+) -> Any:
+    """Call ``llm.with_structured_output(schema).invoke(prompt)`` with retry.
+
+    Retries only on **transient** errors (rate limits / provider overload) with
+    linear backoff; non-transient errors raise immediately so the caller's
+    degradation path handles them. This keeps a burst of eval calls from collapsing
+    when the provider rate-limits.
+    """
+    structured = llm.with_structured_output(schema)
+    last_exc: Exception | None = None
+    for attempt in range(max_retries + 1):
+        try:
+            return structured.invoke(prompt)
+        except Exception as exc:  # noqa: BLE001 - inspected below
+            last_exc = exc
+            transient = any(h in str(exc).lower() for h in _TRANSIENT_LLM_HINTS)
+            if attempt < max_retries and transient:
+                sleep(base_delay * (attempt + 1))
+                continue
+            raise
+    assert last_exc is not None  # unreachable
+    raise last_exc
 
 
 def get_llm(temperature: float | None = None, **kwargs: Any) -> BaseChatModel:

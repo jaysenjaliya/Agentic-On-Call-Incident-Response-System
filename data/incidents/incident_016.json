@@ -1,0 +1,13 @@
+{
+  "incident_id": "INC-016",
+  "service_name": "checkout",
+  "metric": "error_rate",
+  "threshold_violation": "error_rate 34% exceeded 5% threshold for 3m",
+  "timestamp": "2026-07-26T02:00:00Z",
+  "description": "Service throwing errors; logs show connection pool exhausted and psycopg2 OperationalError. A deploy shrank the DB pool.  [eval: injected tool failure {'metrics': 'timeout'}]",
+  "category": "tool_failure",
+  "expected_outcome": "resolved",
+  "inject_failures": {
+    "metrics": "timeout"
+  }
+}

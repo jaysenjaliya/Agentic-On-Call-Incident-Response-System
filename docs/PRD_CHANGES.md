@@ -21,6 +21,7 @@ document — with the authorizing decision.
 | C-08 | §2.3 four mock tools | Addition (Flexible) | Added **MockMetricsAPI** (5th tool) for `pull_metrics`. §4.1 permits additional tools. | ADR-0011 |
 | C-09 | §6.3 "Enable LangSmith tracing" | Clarification | Tracing is **integrated and env-driven** (auto-activates when `LANGCHAIN_API_KEY` is set); left inert pending the lead adding a key. Criterion met as documented setup. | Project lead (Phase 3 Q) |
 | C-10 | §6.3 "incident_003 … human_review HITL checkpoint fires" | Clarification | INC-003 is P0 → escalates immediately (FR-4: P0 never auto-resolves), so it does **not** pass through `human_review`. HITL firing + pause/resume is demonstrated for mid-confidence (0.50–0.85) runs instead (supervisor tests + CLI `--hitl`). | ADR-0012 |
+| C-11 | §6.4 evaluation metrics targets | Caveat (environmental) | The live eval ran on Groq's **free tier**; its daily/per-minute token budget was exhausted by a day of testing, degrading 3 tool-failure incidents to safe escalation. This depresses *resolution rate* (0.79) and *escalation precision* (0.67) only; a budget-available run met all 7 targets (resolution 0.93, precision 0.86). Shipped with a transparent README note by **project-lead decision** rather than waiting for reset. | Project lead |
 
 ---
 

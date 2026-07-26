@@ -32,7 +32,7 @@ from tools import MockLogAPI, MockMetricsAPI
 from tools.mock_log_api import LOG_ENTRY_KEYS
 from tools.mock_metrics_api import METRIC_KEYS
 from utils.audit_trail import append_audit_event
-from utils.llm import get_llm
+from utils.llm import get_llm, invoke_structured
 from utils.tool_runner import run_tool
 
 
@@ -151,7 +151,7 @@ def analyze_diagnosis(
     prompt = _build_diagnosis_prompt(state)
 
     try:
-        result = cast(DiagnosisResult, llm.with_structured_output(DiagnosisResult).invoke(prompt))
+        result = cast(DiagnosisResult, invoke_structured(llm, DiagnosisResult, prompt))
         severity = (
             result.severity if result.severity in config.SEVERITY_LEVELS
             else config.DEFAULT_SEVERITY

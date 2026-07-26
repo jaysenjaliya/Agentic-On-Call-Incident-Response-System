@@ -49,15 +49,16 @@ class MockGitHubAPI:
         failure_mode: FailureMode = FailureMode.NONE,
         deployments: dict[str, list[dict[str, Any]]] | None = None,
     ) -> None:
-        """Create the tool. Optionally override the deployment history map."""
+        """Create the tool. By default reads the shared fixture world; pass
+        ``deployments`` to override with a custom history map (used in tests)."""
         self.failure_mode = failure_mode
-        self.deployments = deployments if deployments is not None else _DEPLOYMENTS
+        self.deployments = deployments  # None -> fall through to tools.fixtures
 
     def get_recent_deployments(self, service_name: str, limit: int = 10) -> Any:
         """Return recent deployments for ``service_name`` (newest first).
 
-        Falls back to a generic history for unknown services (a valid, non-empty
-        result). EMPTY mode returns ``[]`` (service exists but no recent deploys).
+        Auto-resolvable services include a ``suspect`` deploy; novel ones don't.
+        EMPTY mode returns ``[]`` (service exists but no recent deploys).
         """
         raise_if_exception_mode(self.failure_mode, "MockGitHubAPI")
         if self.failure_mode == FailureMode.EMPTY:
@@ -65,5 +66,8 @@ class MockGitHubAPI:
         if self.failure_mode == FailureMode.MALFORMED:
             return MALFORMED_PAYLOAD
 
-        history = self.deployments.get(service_name, _GENERIC_HISTORY)
-        return [{"service": service_name, **dep} for dep in history[:limit]]
+        if self.deployments is not None:
+            history = self.deployments.get(service_name, _GENERIC_HISTORY)
+            return [{"service": service_name, **dep} for dep in history[:limit]]
+        from tools import fixtures
+        return fixtures.deployments_for(service_name)[:limit]

@@ -1,6 +1,6 @@
 {
-  "incident_id": "INC-002",
-  "service_name": "search-api",
+  "incident_id": "INC-005",
+  "service_name": "recommendations",
   "metric": "memory_usage_pct",
   "threshold_violation": "memory 96% exceeded 85%; pods OOM-restarting",
   "timestamp": "2026-07-26T02:00:00Z",

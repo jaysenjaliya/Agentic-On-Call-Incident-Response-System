@@ -30,7 +30,7 @@ from state.schemas import IncidentState
 from tools import MockGitHubAPI, MockRunbookSearch
 from tools.mock_github_api import DEPLOYMENT_KEYS
 from utils.audit_trail import append_audit_event
-from utils.llm import get_llm
+from utils.llm import get_llm, invoke_structured
 from utils.tool_runner import run_tool
 
 
@@ -60,13 +60,19 @@ _CONFIDENCE_GUIDANCE = (
 # Tool-calling nodes (WI-17, WI-18)
 # ===========================================================================
 def _build_runbook_query(state: IncidentState) -> str:
-    """Compose a keyword-rich query from the diagnosis + alert + log signal."""
+    """Compose the runbook query from DETERMINISTIC signals only.
+
+    Uses the raw alert (service, metric, threshold) and raw log messages — NOT the
+    LLM's free-text diagnosis. Rationale: LLM prose can hallucinate a runbook
+    keyword (e.g. "latency") for a genuinely novel incident, causing a spurious
+    match and misrouting it away from escalation. Raw logs are the strongest and
+    most reliable symptom signal.
+    """
     log_text = " ".join(
         str(e.get("message", "")) for e in (state.get("logs") or [])
     )
     parts = [
         state.get("service_name", ""), state.get("metric", ""),
-        state.get("failing_component", ""), state.get("diagnosis_summary", ""),
         state.get("threshold_violation", ""), log_text,
     ]
     return " ".join(p for p in parts if p)
@@ -176,7 +182,7 @@ def analyze_root_cause(
     try:
         result = cast(
             RootCauseResult,
-            llm.with_structured_output(RootCauseResult).invoke(_build_root_cause_prompt(state)),
+            invoke_structured(llm, RootCauseResult, _build_root_cause_prompt(state)),
         )
         confidence = max(0.0, min(1.0, float(result.confidence)))
         # Trust the LLM's runbook choice only if it exists; else fall back to top match.

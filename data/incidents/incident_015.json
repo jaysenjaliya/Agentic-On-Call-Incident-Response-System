@@ -1,0 +1,10 @@
+{
+  "incident_id": "INC-015",
+  "service_name": "analytics-warehouse",
+  "metric": "query_p95_ms",
+  "threshold_violation": "analytical query p95 9800ms; jobs aborting",
+  "timestamp": "2026-07-26T02:00:00Z",
+  "description": "Query planner choosing pathological execution plans; analytical jobs aborting. Unknown cause, no runbook.",
+  "category": "escalation",
+  "expected_outcome": "escalated"
+}

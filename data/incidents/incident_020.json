@@ -1,0 +1,13 @@
+{
+  "incident_id": "INC-020",
+  "service_name": "inventory",
+  "metric": "upstream_latency_p95_ms",
+  "threshold_violation": "p95 4200ms exceeded 800ms; upstream timeouts",
+  "timestamp": "2026-07-26T02:00:00Z",
+  "description": "Upstream dependency slow; requests timing out and circuit breaker opening. A deploy lowered the client timeout.  [eval: injected tool failure {'deployments': 'timeout'}]",
+  "category": "tool_failure",
+  "expected_outcome": "resolved",
+  "inject_failures": {
+    "deployments": "timeout"
+  }
+}

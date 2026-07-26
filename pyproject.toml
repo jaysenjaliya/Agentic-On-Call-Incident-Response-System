@@ -1,6 +1,6 @@
 [project]
 name = "agentic-incident-response"
-version = "0.3.0"
+version = "1.0.0"
 description = "Agentic On-Call Incident Response System — a multi-agent LangGraph system with production-grade failure handling."
 readme = "README.md"
 requires-python = ">=3.11"

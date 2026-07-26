@@ -1,10 +1,10 @@
 {
   "incident_id": "INC-003",
   "service_name": "billing-ledger",
-  "metric": "data_integrity_check",
-  "threshold_violation": "ledger reconciliation mismatch on 0.4% of transactions (P0 financial)",
-  "timestamp": "2026-07-25T03:12:00Z",
-  "description": "Intermittent ledger reconciliation mismatches with no matching runbook and no recent deployment to blame. Novel, high-stakes financial data issue of unknown origin.",
-  "expected_outcome": "escalated",
-  "notes": "Forced escalation: P0 severity (never auto-resolves per FR-4) AND no runbook match (RB search returns empty) -> escalate immediately with full context."
+  "metric": "reconciliation_mismatch_pct",
+  "threshold_violation": "ledger mismatch on 0.4% of transactions (financial)",
+  "timestamp": "2026-07-26T02:00:00Z",
+  "description": "Intermittent ledger reconciliation mismatches with no matching runbook and no recent deployment. High-stakes financial data issue of unknown origin.",
+  "category": "escalation",
+  "expected_outcome": "escalated"
 }

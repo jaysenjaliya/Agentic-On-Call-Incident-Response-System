@@ -1,0 +1,13 @@
+{
+  "incident_id": "INC-017",
+  "service_name": "search-api",
+  "metric": "memory_usage_pct",
+  "threshold_violation": "memory 96% exceeded 85%; pods OOM-restarting",
+  "timestamp": "2026-07-26T02:00:00Z",
+  "description": "Pods hitting OOM and restarting. Heap growth correlates with a new in-memory cache introduced in a recent deploy.  [eval: injected tool failure {'metrics': 'rate_limit'}]",
+  "category": "tool_failure",
+  "expected_outcome": "resolved",
+  "inject_failures": {
+    "metrics": "rate_limit"
+  }
+}

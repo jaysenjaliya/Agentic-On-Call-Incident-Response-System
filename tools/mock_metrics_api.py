@@ -44,9 +44,10 @@ class MockMetricsAPI:
         failure_mode: FailureMode = FailureMode.NONE,
         metrics: dict[str, dict[str, Any]] | None = None,
     ) -> None:
-        """Create the tool. Optionally override the per-service metrics map."""
+        """Create the tool. By default reads the shared fixture world; pass
+        ``metrics`` to override with a custom per-service map (used in tests)."""
         self.failure_mode = failure_mode
-        self.metrics = metrics if metrics is not None else _METRICS
+        self.metrics = metrics  # None -> fall through to tools.fixtures
 
     def get_metrics(self, service_name: str) -> Any:
         """Return current metric readings for ``service_name``.
@@ -61,5 +62,9 @@ class MockMetricsAPI:
         if self.failure_mode == FailureMode.MALFORMED:
             return MALFORMED_PAYLOAD
 
-        readings = self.metrics.get(service_name, _DEFAULT_METRICS)
-        return {"service": service_name, **readings}
+        if self.metrics is not None:
+            readings = self.metrics.get(service_name)
+            if readings is not None:
+                return {"service": service_name, **readings}
+        from tools import fixtures
+        return fixtures.metrics_for(service_name)

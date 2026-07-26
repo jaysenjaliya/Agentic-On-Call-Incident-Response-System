@@ -5,6 +5,48 @@ entry: what was done, decisions, blockers, and the next step. Dates are absolute
 
 ---
 
+## 2026-07-26 — Phase 4: Evaluation & Documentation → tagged `v1.0.0` (portfolio-ready)
+
+**Done** — all 5 work items (WI-34..WI-38).
+
+- **Fixture world** (`tools/fixtures.py`, ADR-0015): 15 services → symptom-specific
+  logs/metrics/deploys, so each incident is distinguishable. Three data tools read
+  it by default.
+- **WI-34** 20 incidents (`data/incidents/`): 10 auto-resolvable, 5 escalation, 5
+  tool-failure (with `inject_failures`), each labeled `category` + `expected_outcome`.
+- **WI-35** `evaluation/run_eval.py`: runs all 20 live, forces mock notifications,
+  injects per-incident tool failures, paces to respect provider rate limits, and
+  uses a simulated reviewer at HITL (approve iff a runbook matched — ADR-0018).
+- **WI-36** `evaluation/metrics.py`: the 7 PRD metrics + Markdown table.
+- **WI-37** full live run → `evaluation/results.json`.
+- **WI-38** professional `README.md`: overview, **Mermaid architecture diagram**,
+  novelty table, evaluation table, setup, CLI/demo, tech stack, structure.
+- Tests: +9 (`test_evaluation.py`) → **157 total**; ruff + mypy clean.
+
+**Hardening surfaced by the eval** (all genuine improvements):
+- ADR-0016: runbook query uses deterministic signals (raw logs + alert), not LLM
+  prose → no spurious matches → escalation recall 0.67 → **1.00**.
+- ADR-0017: `invoke_structured` retries transient LLM errors (429/overload) with
+  backoff → absorbs provider rate-limiting.
+
+**Evaluation result (honest):** all 11 auto-resolve incidents resolved (conf 0.90);
+all 5 escalations correct. Metrics: recall/recovery/audit/DLQ/avg-steps all **PASS**.
+**Resolution 0.79 & precision 0.67** were depressed by **Groq free-tier token
+exhaustion** (from a day of live testing) degrading 3 tool-failure incidents
+(INC-016/017/019) to **safe escalation** — the intended fail-safe (can't reason →
+escalate, never mis-resolve). A prior budget-available run met **all 7** targets
+(resolution 0.93, precision 0.86). Logged as C-11; documented in the README with the
+caveat. **Project lead chose to ship v1.0.0 now with the transparent note** rather
+than wait for the daily reset.
+
+**Next step**
+- Portfolio-ready at `v1.0.0`. Optional Phase 5 stretch (WI-39 trajectory
+  summarization, WI-40 self-healing supervisor) remains if desired.
+- To reproduce the all-pass table: run `evaluation/run_eval.py` on a higher-limit
+  (paid) LLM key.
+
+---
+
 ## 2026-07-26 — Phase 3: Supervisor Integration & Production Hardening → tagged `v0.3.0`
 
 **Done** — all 6 work items (WI-28..WI-33). Full pipeline live end-to-end.
