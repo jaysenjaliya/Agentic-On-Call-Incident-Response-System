@@ -21,11 +21,21 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# HTTP deployment layer (server/ package) — install with `uv sync --extra server`.
+server = [
+    "fastapi>=0.115.0",
+    "uvicorn>=0.30.0",
+]
 dev = [
     "pytest>=8.0",
     "pytest-cov>=5.0",
     "ruff>=0.6.0",
     "mypy>=1.11",
+    # Server deps repeated here so `uv sync --extra dev` can run tests/test_server.py
+    # (httpx is required by FastAPI's TestClient).
+    "fastapi>=0.115.0",
+    "uvicorn>=0.30.0",
+    "httpx>=0.27.0",
 ]
 
 [project.scripts]

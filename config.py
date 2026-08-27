@@ -126,7 +126,8 @@ LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "openai").lower()
 OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-5-nano")
 
 # Groq (temporary provider). OpenAI-compatible API serving open models.
-GROQ_MODEL: str = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+# llama-3.3-70b-versatile was decommissioned by Groq (found 2026-08-27, ADR-0020).
+GROQ_MODEL: str = os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b")
 
 # Deterministic-leaning outputs for reproducible diagnoses/evaluation.
 LLM_TEMPERATURE: float = 0.0

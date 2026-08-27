@@ -9,6 +9,17 @@ All notable changes to this project are documented here. Format follows
 
 _Optional Phase 5 stretch goals (trajectory summarization, self-healing supervisor)._
 
+### Added (2026-08-27 — live server extension)
+- FastAPI deployment layer (`server/`): submit alerts, poll status, HITL
+  approve/reject, audit + DLQ endpoints over HTTP (ADR-0019, C-12).
+- `deploy/` PowerShell scripts + `docs/DEPLOYMENT.md` for running the system as
+  a LAN server on a second Windows PC; optional `SERVER_API_KEY` auth.
+- `tests/test_server.py` (10 offline tests); `server` dependency extra.
+
+### Changed
+- Groq model default → `qwen/qwen3.8-27b` after upstream decommissioned
+  `llama-3.3-70b-versatile` (ADR-0020).
+
 ## [v1.0.0] — 2026-07-26 — Phase 4: Evaluation & Documentation — **portfolio-ready**
 
 The system evaluated at scale and packaged for the portfolio.

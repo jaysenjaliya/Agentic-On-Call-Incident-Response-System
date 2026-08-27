@@ -218,3 +218,45 @@ only; supersede rather than delete). Use the `log-decision` skill to add one.
   mirroring real reviewer judgment. Recorded per incident (`hitl_decision`).
 - **Consequences:** HITL incidents resolve/escalate sensibly; eval never stalls.
   This policy is documented in the README's evaluation notes.
+
+## ADR-0019 — Serve the pipeline over a FastAPI LAN deployment layer
+- **Date:** 2026-08-27 · **Status:** Accepted · **Decider:** Project lead
+- **Context:** The lead wants the project running on a real live server (a spare
+  Windows PC on the LAN) and testable over the network. The PRD scopes a CLI
+  only; the architecture (graph, state, tools, routing) is locked at v1.0.0.
+- **Decision:** Add an HTTP layer as a pure extension: `server/app.py` (FastAPI)
+  wraps the unchanged supervisor graph — POST `/incidents` runs an alert on a
+  2-worker thread pool with the SQLite checkpointer, GET `/incidents/{id}` polls
+  status, POST `/incidents/{id}/hitl` applies approve/reject to a paused run,
+  plus `/audit`, `/dlq`, `/health`. Optional `SERVER_API_KEY` → `X-API-Key`
+  gate. Deployment via git clone + `deploy/*.ps1` scripts; LAN-only by design.
+  Confirmed with the lead via AskUserQuestion (OS=Windows, layer=FastAPI,
+  network=LAN-only, deploy=git clone).
+- **Alternatives:** Running the existing CLI over SSH/RDP (no real server,
+  rejected by lead); Docker image (extra install/build burden on the spare PC);
+  internet exposure via tunnel (unneeded for a few-hours LAN test, larger
+  attack surface).
+- **Consequences:** The system is demonstrable as a network service; HITL works
+  over HTTP and paused runs survive server restarts. New optional dependency
+  group `server` (fastapi, uvicorn). No locked component was modified — the
+  server calls the same `build_supervisor_graph` / `make_sqlite_checkpointer` /
+  `run_config` the CLI uses. Not hardened for the public internet (documented).
+
+## ADR-0020 — Replace decommissioned Groq model with qwen/qwen3.8-27b
+- **Date:** 2026-08-27 · **Status:** Accepted · **Decider:** Project lead
+- **Context:** During the live-server smoke test every LLM call returned 404:
+  Groq decommissioned `llama-3.3-70b-versatile` (ADR-0009's temporary model).
+  The pipeline degraded safely (escalated with "root cause undetermined"), but
+  a working model is needed. Account's model list offered `openai/gpt-oss-120b`,
+  `openai/gpt-oss-20b`, `qwen/qwen3.8-27b`, and others.
+- **Decision:** Set `GROQ_MODEL=qwen/qwen3.8-27b` (lead's choice via
+  AskUserQuestion; recommendation had been gpt-oss-120b). Updated `.env`,
+  the `config.py` default, and `.env.example`. Verified with a live run:
+  correct root cause at confidence 0.92, auto-resolved in 11 steps.
+- **Alternatives:** `openai/gpt-oss-120b` (larger, recommended; not chosen),
+  `openai/gpt-oss-20b` (faster/weaker), switching to `LLM_PROVIDER=openai`
+  (target per ADR-0001, but the OpenAI key situation is unchanged).
+- **Consequences:** Pipeline works on Groq again; provider remains temporary
+  per ADR-0009 (OpenAI stays the locked target). Model behavior (confidence
+  calibration, prose style) may differ from the old Llama — evaluation metrics
+  in the README were measured on the old model.

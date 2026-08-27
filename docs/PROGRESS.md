@@ -5,6 +5,38 @@ entry: what was done, decisions, blockers, and the next step. Dates are absolute
 
 ---
 
+## 2026-08-27 — Live LAN server deployment layer (post-v1.0.0 extension)
+
+**Done** — the system now runs as a real HTTP server on a spare Windows PC.
+
+- **`server/app.py`** (FastAPI, ADR-0019): wraps the unchanged v1.0.0 supervisor
+  graph — `POST /incidents` (202 + background run on a 2-worker pool, SQLite
+  checkpointer), `GET /incidents/{id}` polling, `POST /incidents/{id}/hitl`
+  approve/reject over HTTP, `/audit`, `/dlq`, `/health`, optional
+  `SERVER_API_KEY` → `X-API-Key` gate. Status of pre-restart incidents is
+  recovered from the checkpoint DB.
+- **`deploy/`**: `setup_server.ps1` (uv install + sync + .env scaffold + offline
+  smoke checks), `run_server.ps1` (firewall rule, LAN URLs, uvicorn),
+  `send_test_incident.ps1` (client-side end-to-end driver). Guide:
+  `docs/DEPLOYMENT.md`.
+- **Tests**: `tests/test_server.py` — 10 offline tests (stub-LLM graph via
+  injectable `graph_factory`): auto-resolve, HITL approve/reject over HTTP,
+  409/404/422 paths, API-key gate. Full suite 167 passed; ruff + mypy clean on
+  the new code.
+- **Live smoke test** on this PC: `/health` → submitted a checkout alert →
+  root cause at confidence 0.92 → auto-resolved in 11 steps, audit trail served
+  from file. (Run in `RUN_MODE=mock` to avoid real Gmail sends.)
+
+**Decisions** — ADR-0019 (FastAPI LAN layer; lead chose Windows/FastAPI/LAN/git-clone
+via AskUserQuestion), ADR-0020 (Groq decommissioned `llama-3.3-70b-versatile` —
+every LLM call 404'd; lead chose `qwen/qwen3.8-27b`; verified live). PRD_CHANGES C-12.
+
+**Blockers** — none. **Next** — clone on the spare PC, run
+`deploy\setup_server.ps1`, then `deployun_server.ps1 -OpenFirewall`, and test
+from this PC with `deploy\send_test_incident.ps1`.
+
+---
+
 ## 2026-07-26 — Phase 4: Evaluation & Documentation → tagged `v1.0.0` (portfolio-ready)
 
 **Done** — all 5 work items (WI-34..WI-38).
