@@ -40,10 +40,15 @@ def _isolate(monkeypatch, tmp_path):
 
 @contextmanager
 def _client(confidence=0.92, severity="P1"):
-    """A TestClient over an app whose graph uses the offline stub LLM."""
-    def factory():
+    """A TestClient over an app whose graph uses the offline stub LLM.
+
+    The factory accepts tool overrides so per-incident failure injection is
+    exercised exactly as it is in production.
+    """
+    def factory(**tool_overrides):
         return build_supervisor_graph(
-            llm=PhaseStubLLM(severity=severity, confidence=confidence), sleep=NOOP)
+            llm=PhaseStubLLM(severity=severity, confidence=confidence), sleep=NOOP,
+            **tool_overrides)
     with TestClient(create_app(graph_factory=factory)) as client:
         yield client
 
@@ -134,6 +139,56 @@ class TestPipelineOverHttp:
             listed = c.get("/incidents").json()
             assert any(r["incident_id"] == "INC-API" for r in listed)
             assert c.get("/dlq").json() == []
+
+
+class TestFailureInjection:
+    """Per-request chaos switch — the live equivalent of the eval's inject_failures."""
+
+    def test_all_data_sources_failing_escalates(self):
+        with _client(confidence=0.92) as c:
+            alert = dict(ALERT, inject_failures={"logs": "timeout", "metrics": "timeout"})
+            r = c.post("/incidents", json=alert)
+            assert r.status_code == 202
+            assert r.json()["injected_failures"] == {"logs": "timeout", "metrics": "timeout"}
+            record = _wait(c, "INC-API")
+            # Both diagnosis data sources dead -> no partial data -> safe escalation.
+            assert record["status"] == "completed"
+            assert record["resolution"] == config.RESOLUTION_ESCALATED
+            assert set(record["data_sources_failed"]) == {"logs", "metrics"}
+
+    def test_partial_failure_degrades_gracefully(self):
+        """One source down, one up -> the run still completes (NFR-4)."""
+        with _client(confidence=0.92) as c:
+            alert = dict(ALERT, inject_failures={"logs": "timeout"})
+            c.post("/incidents", json=alert)
+            record = _wait(c, "INC-API")
+            assert record["status"] == "completed"
+            assert record["resolution"] == config.RESOLUTION_RESOLVED
+            assert record["data_sources_failed"] == ["logs"]
+
+    def test_healthy_run_reports_no_failed_sources(self):
+        with _client(confidence=0.92) as c:
+            c.post("/incidents", json=ALERT)
+            record = _wait(c, "INC-API")
+            assert record["data_sources_failed"] == []
+            assert record.get("injected_failures") is None
+
+    @pytest.mark.parametrize("bad", [
+        {"logs": "not_a_mode"},
+        {"not_a_source": "timeout"},
+    ])
+    def test_invalid_injection_rejected(self, bad):
+        with _client() as c:
+            r = c.post("/incidents", json=dict(ALERT, inject_failures=bad))
+            assert r.status_code == 422
+
+
+class TestRootRedirect:
+    def test_root_redirects_to_docs(self):
+        with _client() as c:
+            r = c.get("/", follow_redirects=False)
+            assert r.status_code in (307, 302)
+            assert r.headers["location"] == "/docs"
 
 
 class TestApiKeyGate:

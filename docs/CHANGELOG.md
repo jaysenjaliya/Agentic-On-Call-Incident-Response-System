@@ -20,6 +20,14 @@ _Optional Phase 5 stretch goals (trajectory summarization, self-healing supervis
 - Groq model default → `qwen/qwen3.8-27b` after upstream decommissioned
   `llama-3.3-70b-versatile` (ADR-0020).
 
+### Added (2026-08-28 — live server hardening)
+- Per-request tool-failure injection: `POST /incidents` accepts `inject_failures`
+  so a live run can demonstrate degradation, HITL and escalation (ADR-0021).
+- `deploy/run_demo_battery.ps1`: runs the seeded incident suite against a live
+  server, answers HITL, and scores against `expected_outcome`.
+- `GET /` redirects to `/docs` (ADR-0022); status payload now reports
+  `data_sources_failed` and `matched_runbook_id`.
+
 ## [v1.0.0] — 2026-07-26 — Phase 4: Evaluation & Documentation — **portfolio-ready**
 
 The system evaluated at scale and packaged for the portfolio.

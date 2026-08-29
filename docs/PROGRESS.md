@@ -5,6 +5,44 @@ entry: what was done, decisions, blockers, and the next step. Dates are absolute
 
 ---
 
+## 2026-08-28 — Live server hardening: chaos injection, battery runner, root redirect
+
+**Done** — server deployed on the spare PC (10.200.10.201:8000) and driving
+incidents; this session made it demonstrate the system's actual engineering point.
+
+- **Reachability blocker found**: the server is unreachable from the dev PC —
+  ping and TCP:8000 both fail. Dev PC is 10.200.17.108, server 10.200.10.201:
+  different /24s on an institutional network, i.e. client isolation, not a
+  firewall. Lead's fix: put **both PCs on a phone hotspot**. Troubleshooting
+  section in DEPLOYMENT.md rewritten to diagnose this first.
+- **Gap found + closed (ADR-0021)**: the seeded tool-failure incidents
+  (INC-016..020) carry `inject_failures`, but the server ignored it — the five
+  resilience incidents ran as happy-path. `POST /incidents` now accepts a
+  validated `inject_failures` map and compiles a per-incident graph with the
+  failing tools, sharing the one checkpointer so HITL pause/resume still works.
+  Added `data_sources_failed` + `matched_runbook_id` to the status payload.
+- **`deploy/run_demo_battery.ps1`**: submits seeded incidents over HTTP, answers
+  the HITL checkpoint (default policy mirrors ADR-0018), scores against
+  `expected_outcome`, prints a table, saves JSON. Refuses to run against a
+  `run_mode=prod` server unless `-AllowProd` (would send real emails).
+- **`GET /` redirects to `/docs`** (ADR-0022) — the bare URL used to 404.
+- **Verified live over HTTP** (real Groq LLM): INC-001 resolved (0.92, 11 steps);
+  INC-003/013 escalated; INC-016 `{metrics:timeout}` → degraded gracefully to
+  **resolved**; INC-018 `{runbooks:timeout}` → confidence 0.7 → **HITL pause** →
+  reject → **escalated**. 5/5 matched expected outcomes.
+- Suite 173 passed (16 server tests); ruff + mypy clean on `server/`.
+
+**Decisions** — ADR-0021 (per-request failure injection), ADR-0022 (root → /docs).
+Both confirmed with the lead via AskUserQuestion; PRD_CHANGES C-12 extended.
+
+**Blockers** — none in code. Network reachability is a physical fix (hotspot).
+
+**Next** — on the hotspot, restart the server, then from the dev PC run
+`deployun_demo_battery.ps1 -Server http://<new-ip>:8000 -All` to capture a
+full 20-incident live run.
+
+---
+
 ## 2026-08-27 — Live LAN server deployment layer (post-v1.0.0 extension)
 
 **Done** — the system now runs as a real HTTP server on a spare Windows PC.
@@ -32,7 +70,8 @@ via AskUserQuestion), ADR-0020 (Groq decommissioned `llama-3.3-70b-versatile` �
 every LLM call 404'd; lead chose `qwen/qwen3.8-27b`; verified live). PRD_CHANGES C-12.
 
 **Blockers** — none. **Next** — clone on the spare PC, run
-`deploy\setup_server.ps1`, then `deployun_server.ps1 -OpenFirewall`, and test
+`deploy\setup_server.ps1`, then `deploy
+un_server.ps1 -OpenFirewall`, and test
 from this PC with `deploy\send_test_incident.ps1`.
 
 ---

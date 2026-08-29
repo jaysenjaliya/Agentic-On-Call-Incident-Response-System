@@ -33,10 +33,13 @@ from datetime import UTC, datetime
 from typing import Any, Literal
 
 from fastapi import Depends, FastAPI, Header, HTTPException
-from pydantic import BaseModel, ConfigDict, Field
+from fastapi.responses import RedirectResponse
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 import config
 from state import create_initial_state
+from tools import MockGitHubAPI, MockLogAPI, MockMetricsAPI, MockRunbookSearch
+from tools.base import FailureMode
 from utils import review_dlq
 from utils.observability import run_config, tracing_status
 
@@ -45,6 +48,35 @@ from utils.observability import run_config, tracing_status
 Status = Literal["running", "paused_human_review", "completed", "error"]
 
 _HITL_NEXT: tuple[str, ...] = ("human_review",)
+
+# Data sources a caller may inject a tool failure into, mapped to the graph's
+# tool-injection keyword. Mirrors evaluation/run_eval.py so a live run of a
+# seeded tool-failure incident behaves the same as the offline evaluation.
+_INJECTABLE: dict[str, str] = {
+    "logs": "log_api",
+    "metrics": "metrics_api",
+    "runbooks": "runbook_search",
+    "deployments": "github_api",
+}
+_TOOL_CLASSES: dict[str, Any] = {
+    "log_api": MockLogAPI,
+    "metrics_api": MockMetricsAPI,
+    "runbook_search": MockRunbookSearch,
+    "github_api": MockGitHubAPI,
+}
+
+
+def _tool_overrides(inject: dict[str, str]) -> dict[str, Any]:
+    """Build the four data tools with the requested failure modes applied.
+
+    ``inject`` maps a source name (``logs``/``metrics``/``runbooks``/
+    ``deployments``) to a FailureMode value; unlisted sources behave normally.
+    """
+    overrides: dict[str, Any] = {}
+    for source, kwarg in _INJECTABLE.items():
+        mode = FailureMode(inject[source]) if source in inject else FailureMode.NONE
+        overrides[kwarg] = _TOOL_CLASSES[kwarg](mode)
+    return overrides
 
 
 # ---------------------------------------------------------------------------
@@ -60,6 +92,29 @@ class AlertIn(BaseModel):
     metric: str = ""
     threshold_violation: str = ""
     timestamp: str = ""
+    inject_failures: dict[str, str] | None = Field(
+        default=None,
+        description="Optional chaos switch: {source: failure_mode} where source is "
+                    "logs/metrics/runbooks/deployments and failure_mode is one of "
+                    "timeout/rate_limit/auth/empty/malformed. Demonstrates the "
+                    "system's failure handling on a live run.",
+    )
+
+    @field_validator("inject_failures")
+    @classmethod
+    def _check_inject(cls, value: dict[str, str] | None) -> dict[str, str] | None:
+        """Reject unknown sources or failure modes with a 422 rather than a 500."""
+        if not value:
+            return value
+        unknown = sorted(set(value) - set(_INJECTABLE))
+        if unknown:
+            raise ValueError(
+                f"unknown source(s) {unknown}; valid: {sorted(_INJECTABLE)}")
+        valid_modes = {m.value for m in FailureMode}
+        bad = sorted({m for m in value.values() if m not in valid_modes})
+        if bad:
+            raise ValueError(f"unknown failure mode(s) {bad}; valid: {sorted(valid_modes)}")
+        return value
 
 
 class HitlIn(BaseModel):
@@ -82,10 +137,18 @@ def require_api_key(x_api_key: str | None = Header(default=None)) -> None:
 # Shared runtime state
 # ---------------------------------------------------------------------------
 class _Runtime:
-    """Holds the compiled graph, the worker pool, and the incident registry."""
+    """Holds the graph builder, the worker pool, and the incident registry.
 
-    def __init__(self, graph: Any) -> None:
-        self.graph = graph
+    ``build(**tool_overrides)`` compiles a graph sharing the one checkpointer, so
+    an incident that injects tool failures gets its own graph while its state
+    still lands in the same checkpoint DB (topology is identical, so the default
+    graph can read any incident's state back).
+    """
+
+    def __init__(self, build: Any) -> None:
+        self.build = build
+        self.graph = build()  # default: all tools healthy
+        self.graphs: dict[str, Any] = {}  # per-incident graphs for injected runs
         self.executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="incident")
         self.registry: dict[str, dict[str, Any]] = {}
         self.lock = threading.Lock()
@@ -106,8 +169,10 @@ def _summarize(out: dict[str, Any]) -> dict[str, Any]:
         "severity": out.get("severity"),
         "root_cause_hypothesis": out.get("root_cause_hypothesis") or None,
         "root_cause_confidence": out.get("root_cause_confidence"),
+        "matched_runbook_id": out.get("matched_runbook_id"),
         "resolution": out.get("resolution") or None,
         "total_steps": out.get("total_steps"),
+        "data_sources_failed": out.get("data_sources_failed"),
         "dlq_reference": out.get("dlq_reference"),
     }
 
@@ -117,20 +182,24 @@ def _execute(rt: _Runtime, incident_id: str, state: Any = None,
     """Worker: run (or resume) one incident through the graph and record the outcome.
 
     ``state`` set -> fresh run from an initial state; ``decision`` set -> resume a
-    HITL-paused run with that human decision. Ends the registry record in
-    completed / paused_human_review / error.
+    HITL-paused run with that human decision. Uses the incident's own graph when
+    it injected tool failures, so a resumed run keeps the same failing tools.
+    Ends the registry record in completed / paused_human_review / error.
     """
     cfg = run_config(incident_id, thread_id=incident_id)
+    graph = rt.graphs.get(incident_id, rt.graph)
     try:
         if decision is not None:
-            rt.graph.update_state(cfg, {"human_decision": decision})
-        out = rt.graph.invoke(state, cfg)
-        if rt.graph.get_state(cfg).next == _HITL_NEXT:
+            graph.update_state(cfg, {"human_decision": decision})
+        out = graph.invoke(state, cfg)
+        if graph.get_state(cfg).next == _HITL_NEXT:
             rt.update(incident_id, status="paused_human_review", **_summarize(out))
         else:
             rt.update(incident_id, status="completed", **_summarize(out))
+            rt.graphs.pop(incident_id, None)  # run is over; drop its graph
     except Exception as exc:  # noqa: BLE001 - surfaced to the client, never dropped
         rt.update(incident_id, status="error", error=f"{type(exc).__name__}: {exc}")
+        rt.graphs.pop(incident_id, None)
 
 
 def _snapshot_record(rt: _Runtime, incident_id: str) -> dict[str, Any] | None:
@@ -149,21 +218,26 @@ def _snapshot_record(rt: _Runtime, incident_id: str) -> dict[str, Any] | None:
 def create_app(graph_factory: Any = None) -> FastAPI:
     """Build the FastAPI app.
 
-    ``graph_factory`` (a zero-arg callable returning a compiled graph) is
-    injectable so tests can serve a stub-LLM graph offline; the default builds
-    the real pipeline with the SQLite checkpointer at startup — not at import —
-    so importing this module never requires API keys.
+    ``graph_factory(**tool_overrides)`` is injectable so tests can serve a
+    stub-LLM graph offline; the default builds the real pipeline against one
+    shared SQLite checkpointer at startup — not at import — so importing this
+    module never requires API keys.
     """
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> Any:
         config.ensure_runtime_dirs()
         if graph_factory is not None:
-            graph = graph_factory()
+            build = graph_factory
         else:
             from agents.supervisor import build_supervisor_graph, make_sqlite_checkpointer
-            graph = build_supervisor_graph(checkpointer=make_sqlite_checkpointer())
-        app.state.rt = _Runtime(graph)
+
+            saver = make_sqlite_checkpointer()
+
+            def build(**tool_overrides: Any) -> Any:
+                return build_supervisor_graph(checkpointer=saver, **tool_overrides)
+
+        app.state.rt = _Runtime(build)
         try:
             yield
         finally:
@@ -176,6 +250,11 @@ def create_app(graph_factory: Any = None) -> FastAPI:
         lifespan=lifespan,
         dependencies=[Depends(require_api_key)],
     )
+
+    @app.get("/", include_in_schema=False)
+    def root() -> RedirectResponse:
+        """Send browsers hitting the bare host to the interactive API docs."""
+        return RedirectResponse(url="/docs")
 
     @app.get("/health")
     def health() -> dict[str, Any]:
@@ -201,10 +280,17 @@ def create_app(graph_factory: Any = None) -> FastAPI:
                 detail=f"incident {incident_id} is already {existing['status']}",
             )
 
+        # A chaos run needs its own graph carrying the failing tool instances.
+        inject = alert.inject_failures or {}
+        if inject:
+            rt.graphs[incident_id] = rt.build(**_tool_overrides(inject))
+
         rt.update(incident_id, status="running", service_name=state["service_name"],
-                  submitted_at=datetime.now(UTC).isoformat(), error=None)
+                  submitted_at=datetime.now(UTC).isoformat(), error=None,
+                  injected_failures=inject or None)
         rt.executor.submit(_execute, rt, incident_id, state)
         return {"incident_id": incident_id, "status": "running",
+                "injected_failures": inject or None,
                 "status_url": f"/incidents/{incident_id}"}
 
     @app.get("/incidents")

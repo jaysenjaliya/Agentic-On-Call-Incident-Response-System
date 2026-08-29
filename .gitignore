@@ -63,3 +63,6 @@ Thumbs.db
 _prd_extracted.txt
 scratch/
 evaluation/_*.log
+
+# Live-server battery run artifacts (deploy/run_demo_battery.ps1)
+evaluation/live_battery_*.json

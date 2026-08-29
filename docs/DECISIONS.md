@@ -260,3 +260,45 @@ only; supersede rather than delete). Use the `log-decision` skill to add one.
   per ADR-0009 (OpenAI stays the locked target). Model behavior (confidence
   calibration, prose style) may differ from the old Llama — evaluation metrics
   in the README were measured on the old model.
+
+## ADR-0021 — Accept per-request tool-failure injection on the live server
+- **Date:** 2026-08-28 · **Status:** Accepted · **Decider:** Project lead
+- **Context:** The seeded tool-failure incidents (INC-016..020) carry an
+  `inject_failures` map that `evaluation/run_eval.py` applies by constructing
+  the mock tools with failure modes. The HTTP server built one graph at startup
+  with healthy tools, so it silently ignored that field — the five resilience
+  incidents ran as ordinary happy-path runs. Since the PRD's stated engineering
+  point is surviving tool failures rather than the happy path, the live server
+  could not demonstrate the thing the project is about.
+- **Decision:** `POST /incidents` accepts an optional validated
+  `inject_failures` map (sources `logs`/`metrics`/`runbooks`/`deployments`;
+  modes from `FailureMode`). When present the server compiles a per-incident
+  graph carrying the failing tool instances, **sharing the one checkpointer** so
+  HITL pause/resume and state reads still work; the graph is retained for that
+  incident (so a resumed run keeps the same failing tools) and dropped when the
+  run terminates. Unknown source/mode → 422. `data_sources_failed` and
+  `matched_runbook_id` were added to the status payload as degradation evidence.
+- **Alternatives:** Leaving the server happy-path only (rejected — hides the
+  project's core behaviour); rebuilding the single shared graph per request
+  (wasteful and racy across concurrent incidents); a separate `/chaos` endpoint
+  (duplicates the submit path for no gain).
+- **Consequences:** The live server demonstrates graceful degradation (NFR-4),
+  the confidence→HITL→escalation chain, and the DLQ over HTTP. Verified live:
+  `{"metrics":"timeout"}` → resolved on partial data; `{"runbooks":"timeout"}`
+  → confidence 0.7 → HITL pause → reject → escalated. No locked component
+  changed — injection only swaps the already-injectable tool arguments of
+  `build_supervisor_graph`. Mock tools remain the only injectable surface.
+
+## ADR-0022 — Redirect `/` to the API docs instead of adding a dashboard
+- **Date:** 2026-08-28 · **Status:** Accepted · **Decider:** Project lead
+- **Context:** The bare server URL (`http://<host>:8000/`) returned 404, since
+  the API lives under `/health`, `/incidents`, `/docs`. A browser dashboard was
+  offered as an alternative.
+- **Decision:** `GET /` issues a redirect to `/docs` (the existing Swagger UI).
+- **Alternatives:** A custom live dashboard (submit/poll/approve in the browser)
+  — richer demo surface but a new UI to build and maintain, declined by the
+  lead; leaving the 404 — poor first impression for anyone opening the URL.
+- **Consequences:** The root URL is immediately useful and Swagger already
+  provides a click-through way to submit incidents and apply HITL decisions,
+  so no bespoke UI is carried. If a portfolio demo later needs a friendlier
+  surface, the dashboard remains an open option.
