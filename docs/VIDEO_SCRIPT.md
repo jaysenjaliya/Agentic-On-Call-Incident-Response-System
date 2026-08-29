@@ -1,37 +1,62 @@
-# 60-Second Demo Film — Production Script
+# 60-Second Demo Film — Veo Shooting Script
 
-A shot-by-shot script for a ~60s AI-generated demo video of the Agentic On-Call
-Incident Response System. Built for **100% AI text-to-video** (Runway / Sora /
-Kling / Pika), stylized (no real screen capture), calm AI narrator, **16:9** for
-LinkedIn and the portfolio.
+A shot-by-shot script for an AI-generated demo video of the Agentic On-Call
+Incident Response System. Every prompt is written for **Google Veo in the Gemini
+app**: paste one, generate, move to the next. Stylized (no screen capture),
+separate AI narrator, **16:9** for LinkedIn and the portfolio.
 
-> **The one hard constraint:** AI text-to-video cannot render readable text.
-> Every number, label, and title in this script is added afterwards in your
-> editor (CapCut, Premiere, After Effects) as an overlay. The AI generates the
-> *imagery* only — which is why every prompt below ends with "no text".
+Working copy with copy-to-clipboard buttons:
+<https://claude.ai/code/artifact/05eaec9c-d8de-464e-856a-a89f8be3838f>
+
+---
+
+## How to run this in Gemini
+
+1. **Paste one prompt at a time.** Veo has no memory between clips, so every
+   prompt is self-contained and repeats the same style sentence verbatim — that
+   repetition is what makes 13 separate generations look like one film. Don't
+   paraphrase it.
+2. **Set the clip length** to each shot's `gen` value. Veo produces 4, 6 or 8
+   second clips — nothing in between — so a 5-second shot is generated at 6s and
+   trimmed.
+3. **Generate 3–4 takes** of each shot and keep the best.
+4. **Veo makes the sound too.** Each prompt carries its own `SFX:` and
+   `Ambient noise:` lines, so effects come out synchronized to the action. You
+   only add a music bed and the narration.
+5. **Every prompt ends by refusing dialogue and text.** Leave that line in —
+   without it Veo invents mumbled speech and garbled subtitles that fight your
+   voiceover.
+
+> **Let Veo handle imagery, not data.** It renders short text better than most
+> models but still garbles precise values, and `0.92` rendered as `0.29`
+> undermines the film. Generate clean plates with no text, then add every number
+> and label as an overlay in CapCut or Premiere.
+
+Total generated: 66s → cut to 60s.
 
 ---
 
 ## Structure
 
-| Act | Time | Beat | Color |
-|-----|------|------|-------|
-| I | 0:00–0:17 | The 3 AM reality — alert, exhaustion, manual grind | amber → red |
-| II | 0:17–0:44 | The agent — diagnosis, root cause, the confidence gate, auto-fix | cyan → green |
-| III | 0:44–0:56 | Why you can trust it — resilience, honest escalation, audit trail | cyan/amber |
-| IV | 0:56–1:00 | Title card | neutral |
+| Act | Time | Beat |
+|-----|------|------|
+| I | 0:00–0:17 | The 3 AM reality — alert, exhaustion, manual grind |
+| II | 0:17–0:44 | The agent — diagnosis, root cause, confidence gate, auto-fix |
+| III | 0:44–0:56 | Why you can trust it — resilience, honest escalation, audit trail |
+| IV | 0:56–1:00 | Title card |
 
-The turn at **0:17** is the whole video. Act I should feel cluttered, noisy and
-handheld; Act II onward is calm, geometric and locked-off. Let the sound drop to
-near-silence for a half-beat at 0:17 — that contrast is what creates curiosity.
+The turn at **0:17** is the whole video. Act I is cluttered, noisy and handheld;
+everything after is calm, geometric and locked-off. Cut the music to
+near-silence for half a beat at that edit — the contrast is what creates
+curiosity.
 
 ---
 
-## Full voiceover (127 words · ~60s at a calm 2.1 words/sec)
+## Full voiceover (127 words · ~60s)
 
-Paste this whole block into ElevenLabs or your TTS of choice. Voice direction:
-**calm technical documentary narrator, measured, unhurried, quietly confident.
-Not a hype promo read.** Slight warmth. Pause where the line breaks are.
+Generate separately in ElevenLabs and lay over the cut — do **not** ask Veo to
+speak it. Direction: **calm technical documentary narrator**, measured,
+unhurried, quietly confident. Not a hype promo read. Pause at each line break.
 
 ```
 Three forty-seven AM. Production breaks.
@@ -65,222 +90,333 @@ Not a chatbot. A first responder.
 
 ---
 
-## Style block — paste into EVERY prompt
+## The 13 prompts
 
-Appending the same block to every shot is what keeps 13 separately-generated
-clips looking like one film.
-
-```
-Cinematic 16:9, photoreal 3D render, dark moody tech aesthetic, deep blue-black
-environment, volumetric light shafts, shallow depth of field, subtle film grain,
-anamorphic lens flare, 24fps motion blur, high contrast, no text, no letters,
-no numbers, no logos, no watermark.
-```
-
-**Negative prompt** (where your tool supports one):
-
-```
-text, letters, words, numbers, UI screenshots, readable writing, watermark,
-logo, subtitles, distorted hands, extra fingers, deformed face, cartoon, anime,
-oversaturated, low contrast
-```
-
----
-
-## Shot list
-
-Each shot: generate 3–4 variations, keep the best, trim to the stated duration.
+Each follows Veo's formula — cinematography, subject, action, context, then
+style and ambiance — with audio specified explicitly.
 
 ### ACT I — THE 3 AM REALITY
 
-**S01 · 0:00–0:04 · 4s**
+#### S01 · 0:00–0:04 · 4s · **gen 4s** · cold open
 - **VO:** "Three forty-seven AM. Production breaks."
-- **On-screen text:** `03:47` (mono, small, bottom-left, fades in at 0:01)
-- **SFX:** phone buzz against wood; low sub-bass drone begins
-- **Prompt:**
-  > Extreme close-up of a smartphone lying face-up on a wooden nightstand in a
-  > pitch-dark bedroom. The screen ignites with harsh amber-red alert light,
-  > spilling across the wood grain and washing up onto the ceiling. Slow push-in
-  > with subtle handheld micro-shake. The phone is the only light source in
-  > frame. Cold blue ambient moonlight from a window far behind.
+- **Overlay in post:** `03:47`
 
-**S02 · 0:04–0:08 · 4s**
+```
+Slow push-in extreme close-up with subtle handheld micro-shake. A smartphone
+lying face-up on a wooden nightstand. The screen suddenly ignites with harsh
+amber-red alert light that spills across the wood grain and washes up onto the
+ceiling. A pitch-dark bedroom at night, the phone the only light source in
+frame, faint cold blue moonlight from a window far behind. Cinematic photoreal
+render, dark moody tech aesthetic, deep blue-black palette with electric cyan
+and amber accents, volumetric light, shallow depth of field, subtle film grain,
+anamorphic lens flare, high contrast.
+SFX: a phone buzzing hard against wood, twice.
+Ambient noise: the dead silence of a bedroom at night, a faint low hum.
+No spoken dialogue, no voiceover, no subtitles, no captions, no on-screen text,
+no logos, no watermark.
+```
+
+#### S02 · 0:04–0:08 · 4s · **gen 4s**
 - **VO:** "An alert fires. Somebody's night is over."
-- **On-screen text:** none — let the image breathe
-- **SFX:** sheets, a laptop lid opening, a single keystroke
-- **Prompt:**
-  > Silhouette of a person sitting up in bed in a dark room, opening a laptop.
-  > The screen's cold blue light floods their face from below, revealing
-  > exhaustion and squinting eyes. Rack focus from the laptop hinge to their
-  > face. Static camera, slight low angle, intimate and quiet.
+- **Overlay in post:** none — let the image breathe
 
-**S03 · 0:08–0:13 · 5s**
+```
+Static medium shot at a slight low angle, rack focus from the laptop hinge to
+the face. The silhouette of a tired person sitting up in bed, opening a laptop.
+The screen's cold blue light floods their face from below, revealing exhaustion
+and squinting eyes. A dark bedroom in the hours before dawn. Cinematic photoreal
+render, dark moody tech aesthetic, deep blue-black palette with electric cyan
+and amber accents, volumetric light, shallow depth of field, subtle film grain,
+anamorphic lens flare, high contrast.
+SFX: bedsheets shifting, a laptop lid opening, a single keystroke.
+Ambient noise: quiet room tone, a distant refrigerator hum.
+No spoken dialogue, no voiceover, no subtitles, no captions, no on-screen text,
+no logos, no watermark.
+```
+
+#### S03 · 0:08–0:13 · 5s · **gen 6s → trim** · the manual grind
 - **VO:** "Now the hunt starts. Logs. Metrics. Runbooks. What shipped today."
-- **On-screen text:** four words cutting in on the beat — `LOGS` `METRICS` `RUNBOOKS` `DEPLOYS`
-- **SFX:** frantic keyboard, layered notification pings
-- **Prompt:**
-  > Abstract visualization of overwhelming data: dozens of translucent glowing
-  > panels of illegible scrolling characters and jagged red graph spikes
-  > cascading toward camera through dark space, chaotic, layered and
-  > overlapping without order. Fast dolly forward, heavy motion blur,
-  > claustrophobic and disorienting.
+- **Overlay in post:** `LOGS` `METRICS` `RUNBOOKS` `DEPLOYS` — cut each in on the beat
 
-**S04 · 0:13–0:17 · 4s**
+```
+Fast dolly forward with heavy motion blur, claustrophobic framing. Dozens of
+translucent glowing panels covered in illegible scrolling characters, alongside
+jagged red graph spikes, cascading toward camera through dark space, chaotic and
+layered, overlapping without order. An infinite dark digital void. Cinematic
+photoreal render, dark moody tech aesthetic, deep blue-black palette with
+electric cyan and amber accents, volumetric light, shallow depth of field,
+subtle film grain, anamorphic lens flare, high contrast.
+SFX: a frantic mechanical keyboard, layered notification pings piling up until
+they overwhelm.
+Ambient noise: a rising electrical hum building in pressure.
+No spoken dialogue, no voiceover, no subtitles, no captions, no on-screen text,
+no logos, no watermark.
+```
+
+#### S04 · 0:13–0:17 · 4s · **gen 4s**
 - **VO:** "Forty-five minutes of pattern-matching — at four in the morning."
-- **On-screen text:** `45 MINUTES` large, then small beneath: `typical MTTR`
-- **SFX:** ticking clock rising in the mix, then everything cuts to silence at 0:17
-- **Prompt:**
-  > Time-lapse on a dark desk: analog clock hands spinning fast, empty coffee
-  > cups accumulating one by one, pale dawn light creeping slowly across the
-  > surface. Locked-off static camera, long-exposure light trails, melancholy
-  > and still.
+- **Overlay in post:** `45 MINUTES` / `typical MTTR`
+
+```
+Locked-off static wide shot, time-lapse with long-exposure light trails. An
+analog desk clock and a growing collection of empty coffee cups on a dark desk.
+The clock hands spin fast while cups accumulate one by one and pale dawn light
+creeps slowly across the surface. A home office at the end of a long night.
+Cinematic photoreal render, dark moody tech aesthetic, deep blue-black palette
+with electric cyan and amber accents, volumetric light, shallow depth of field,
+subtle film grain, anamorphic lens flare, high contrast.
+SFX: a clock ticking, gradually accelerating.
+Ambient noise: very faint early morning birdsong outside a closed window.
+No spoken dialogue, no voiceover, no subtitles, no captions, no on-screen text,
+no logos, no watermark.
+```
 
 ### ACT II — THE AGENT
 
-**S05 · 0:17–0:21 · 4s** — *the turn*
+#### S05 · 0:17–0:21 · 4s · **gen 4s** · the turn
 - **VO:** "So I built an agent that gets there first."
-- **On-screen text:** title reveal — `AGENTIC INCIDENT RESPONSE`
-- **SFX:** near-silence, then a single deep resonant tone; a clean pulse begins
-- **Prompt:**
-  > A single glowing amber orb of light drifts slowly through darkness and is
-  > caught by an elegant machined dark-metal aperture, which irises open and
-  > swallows it. The surrounding chaos falls away into calm. Slow motion, macro
-  > lens, dust motes suspended in volumetric light, cyan glow blooming from
-  > deep inside the aperture.
+- **Overlay in post:** `AGENTIC INCIDENT RESPONSE` (title reveal)
 
-**S06 · 0:21–0:26 · 5s**
+```
+Slow-motion macro shot with a slow push-in. A single glowing amber orb of light
+drifting through darkness toward an elegant machined dark-metal aperture. The
+aperture irises open and swallows the orb, and cyan light blooms from deep inside
+it as the surrounding chaos falls away into calm. A void of darkness with dust
+motes suspended in shafts of light. Cinematic photoreal render, dark moody tech
+aesthetic, deep blue-black palette with electric cyan and amber accents,
+volumetric light, shallow depth of field, subtle film grain, anamorphic lens
+flare, high contrast.
+SFX: one deep resonant tone, then a precise mechanical iris click.
+Ambient noise: near silence, then a clean rhythmic electronic pulse beginning.
+No spoken dialogue, no voiceover, no subtitles, no captions, no on-screen text,
+no logos, no watermark.
+```
+
+#### S06 · 0:21–0:26 · 5s · **gen 6s → trim** · diagnosis
 - **VO:** "Stage one reads logs and metrics together, and scores severity."
-- **On-screen text:** `STAGE 1 — DIAGNOSIS` · then `severity: P1`
-- **SFX:** two soft whooshes converging, a chime on the pulse
-- **Prompt:**
-  > Two ribbons of luminous cyan data flow in from opposite sides of frame and
-  > converge into a faceted crystalline node suspended in dark space. The node
-  > absorbs them, pulses once, and a concentric ring of light expands outward.
-  > Slow precise orbiting camera move, elegant and controlled.
+- **Overlay in post:** `STAGE 1 — DIAGNOSIS` / `severity: P1`
 
-**S07 · 0:26–0:32 · 6s**
+```
+Slow precise orbiting camera move. Two ribbons of luminous cyan data and a
+faceted crystalline node suspended in dark space. The ribbons flow in from
+opposite sides of frame and converge into the node, which absorbs them, pulses
+once, and emits an expanding concentric ring of light. An empty dark void with
+depth and drifting particles. Cinematic photoreal render, dark moody tech
+aesthetic, deep blue-black palette with electric cyan and amber accents,
+volumetric light, shallow depth of field, subtle film grain, anamorphic lens
+flare, high contrast.
+SFX: two soft whooshes converging, then a clean bell chime on the pulse.
+Ambient noise: a low steady electronic pulse.
+No spoken dialogue, no voiceover, no subtitles, no captions, no on-screen text,
+no logos, no watermark.
+```
+
+#### S07 · 0:26–0:32 · 6s · **gen 6s** · root cause
 - **VO:** "Stage two matches runbooks against the deploy timeline, and commits to a confidence score."
-- **On-screen text:** `STAGE 2 — ROOT CAUSE` · then a counter animating `0.00 → 0.92`
-- **SFX:** rising tonal sweep as the arc fills; a lock-in click at the end
-- **Prompt:**
-  > Two vast constellations of glowing points hang facing each other in dark
-  > space. Thin threads of light test connections between them one by one, most
-  > flickering out, until a single thread ignites bright cyan and holds, linking
-  > one point in each constellation. A luminous arc sweeps around that
-  > connection and fills like a gauge. Slow dolly in, cinematic, a sense of awe.
+- **Overlay in post:** `STAGE 2 — ROOT CAUSE` / counter `0.00 → 0.92`
 
-**S08 · 0:32–0:39 · 7s** — *the core idea*
+```
+Slow cinematic dolly in on a wide composition. Two vast constellations of glowing
+points hanging facing each other in dark space. Thin threads of light test
+connections between the two constellations one by one, most flickering out and
+dying, until a single thread ignites bright cyan and holds, linking one point in
+each constellation; a luminous arc then sweeps around that connection and fills
+like a gauge. Deep dark space with a sense of scale and awe. Cinematic photoreal
+render, dark moody tech aesthetic, deep blue-black palette with electric cyan and
+amber accents, volumetric light, shallow depth of field, subtle film grain,
+anamorphic lens flare, high contrast.
+SFX: rapid soft ticks as threads test and fail, a rising tonal sweep as the arc
+fills, then a single decisive lock-in click.
+Ambient noise: a deep resonant space hum.
+No spoken dialogue, no voiceover, no subtitles, no captions, no on-screen text,
+no logos, no watermark.
+```
+
+#### S08 · 0:32–0:39 · 7s · **gen 8s → trim** · the core idea
 - **VO:** "Above eighty-five percent, it fixes it. In between, it asks a human. Below, it escalates."
-- **On-screen text:** label each branch as it lights —
-  `AUTO-FIX  > 0.85` (green) · `HUMAN REVIEW  0.50–0.85` (amber) · `ESCALATE  < 0.50 or any P0` (red)
-- **SFX:** three soft tones, one per branch; a decisive mechanical lock on the green
-- **Prompt:**
-  > A single beam of cyan light travels along a dark polished channel and
-  > reaches a three-way fork. The three diverging paths glow in different
-  > colors — green rising to the right, amber running straight ahead, red
-  > descending to the left. The beam surges decisively down the green path.
-  > Top-down overhead camera slowly rising, geometric and precise.
+- **Overlay in post:** `AUTO-FIX > 0.85` (green) / `HUMAN REVIEW 0.50–0.85` (amber) / `ESCALATE < 0.50 or any P0` (red)
 
-**S09 · 0:39–0:44 · 5s**
+```
+Top-down overhead shot, camera slowly rising. A single beam of cyan light
+travelling along a dark polished channel toward a three-way fork. The beam
+reaches the fork, where the three diverging paths light up in different colors,
+green rising to the right, amber running straight ahead, red descending to the
+left, and then the beam surges decisively down the green path. A precise
+geometric dark environment of machined channels. Cinematic photoreal render,
+dark moody tech aesthetic, deep blue-black palette with electric cyan and amber
+accents, volumetric light, shallow depth of field, subtle film grain, anamorphic
+lens flare, high contrast.
+SFX: three soft distinct tones, one as each path lights, then a decisive
+mechanical lock as the beam commits.
+Ambient noise: a low pulsing electronic bed.
+No spoken dialogue, no voiceover, no subtitles, no captions, no on-screen text,
+no logos, no watermark.
+```
+
+#### S09 · 0:39–0:44 · 5s · **gen 6s → trim** · the payoff
 - **VO:** "It applied the fix, verified it, closed the incident. Twenty seconds."
-- **On-screen text:** `RESOLVED` · small beneath: `11 steps · 20 seconds`
-- **SFX:** mechanical seal, then a warm resolving chord
-- **Prompt:**
-  > A complex dark machined mechanism with a fractured, angry glowing red seam
-  > running through it. Precision components rotate and slide into place,
-  > sealing the fracture; the red light drains away and is replaced by steady
-  > calm green. Camera pulls back from macro to a wide reveal of the whole
-  > mechanism running smoothly. Satisfying mechanical precision.
+- **Overlay in post:** `RESOLVED` / `11 steps · 20 seconds`
+
+```
+Camera pulls back from a macro detail to a wide reveal. A complex dark machined
+mechanism with a fractured, angry glowing red seam running through it. Precision
+components rotate and slide into place, sealing the fracture; the red light
+drains away and is replaced by steady calm green as the whole mechanism settles
+into smooth motion. A dark workshop void lit only by the mechanism itself.
+Cinematic photoreal render, dark moody tech aesthetic, deep blue-black palette
+with electric cyan and amber accents, volumetric light, shallow depth of field,
+subtle film grain, anamorphic lens flare, high contrast.
+SFX: metal sliding and seating, a solid mechanical seal, then a warm resolving
+chord.
+Ambient noise: a smooth confident machine hum.
+No spoken dialogue, no voiceover, no subtitles, no captions, no on-screen text,
+no logos, no watermark.
+```
 
 ### ACT III — WHY YOU CAN TRUST IT
 
-**S10 · 0:44–0:49 · 5s**
+#### S10 · 0:44–0:49 · 5s · **gen 6s → trim** · resilience
 - **VO:** "When a tool dies mid-investigation, it retries, then continues on partial data."
-- **On-screen text:** `tool timeout → classified → 3 retries, exponential backoff → continues on partial data`
-- **SFX:** a glitch/static burst on the node death, then steady flow resuming
-- **Prompt:**
-  > One node in a lattice of glowing cyan nodes flickers, turns red, and goes
-  > dark. Three pulsing rings emanate from the dead node and fade. The
-  > surrounding light-paths bend and reroute around it, and the network
-  > continues flowing without interruption. Medium shot, slow orbit, tension
-  > releasing into calm.
+- **Overlay in post:** `tool timeout` → `classified` → `3 retries, exponential backoff` → `continues on partial data`
 
-**S11 · 0:49–0:53 · 4s**
+```
+Medium shot with a slow orbiting camera move. A lattice of glowing cyan nodes
+connected by flowing light paths. One node flickers, turns red and goes dark;
+three pulsing rings emanate outward from the dead node and fade; the surrounding
+light paths then bend and reroute around it, and the network continues flowing
+without interruption. An endless dark digital space. Cinematic photoreal render,
+dark moody tech aesthetic, deep blue-black palette with electric cyan and amber
+accents, volumetric light, shallow depth of field, subtle film grain, anamorphic
+lens flare, high contrast.
+SFX: an electrical glitch and static burst as the node dies, three soft retry
+pings, then steady flow resuming.
+Ambient noise: a steady electronic pulse that never stops.
+No spoken dialogue, no voiceover, no subtitles, no captions, no on-screen text,
+no logos, no watermark.
+```
+
+#### S11 · 0:49–0:53 · 4s · **gen 4s** · honest escalation
 - **VO:** "When it isn't confident, it escalates — with the entire investigation attached."
-- **On-screen text:** `confidence 0.70 → HUMAN REVIEW → escalated with full context`
-- **SFX:** warm rising swell
-- **Prompt:**
-  > A broad beam of amber light rises through darkness toward a human silhouette
-  > standing above, carrying with it a glowing translucent stack of layered
-  > document planes. The silhouette reaches down toward the light. Low angle
-  > looking up, volumetric god-rays, reverent and warm.
+- **Overlay in post:** `confidence 0.70` / `HUMAN REVIEW` / `escalated with full context`
 
-**S12 · 0:53–0:56 · 3s**
+```
+Low angle looking steeply upward, volumetric god-rays. A broad beam of amber
+light and the silhouette of a person standing high above. The beam rises through
+darkness toward the silhouette carrying a glowing translucent stack of layered
+document planes, and the silhouette reaches down toward the light. A
+cathedral-like dark space with depth above. Cinematic photoreal render, dark
+moody tech aesthetic, deep blue-black palette with electric cyan and amber
+accents, volumetric light, shallow depth of field, subtle film grain, anamorphic
+lens flare, high contrast.
+SFX: a warm rising swell.
+Ambient noise: a soft reverent low hum with gentle reverb.
+No spoken dialogue, no voiceover, no subtitles, no captions, no on-screen text,
+no logos, no watermark.
+```
+
+#### S12 · 0:53–0:56 · 3s · **gen 4s → trim** · the receipts
 - **VO:** "Every decision it made, logged for the post-mortem."
-- **On-screen text:** `AUDIT TRAIL — every node, every decision, every retry`
-- **SFX:** rhythmic soft ticks as entries pass
-- **Prompt:**
-  > A tall vertical ribbon of glowing horizontal entries scrolls steadily upward
-  > through dark space, each entry a small luminous bar receding into depth,
-  > endless. Locked-off static camera, cool cyan light, the feeling of a
-  > complete permanent archive.
+- **Overlay in post:** `AUDIT TRAIL — every node, every decision, every retry`
+
+```
+Locked-off static camera. A tall vertical ribbon of glowing horizontal entries,
+each a small luminous bar, receding into depth. The ribbon scrolls steadily
+upward through dark space, endless and orderly. A cool archival void. Cinematic
+photoreal render, dark moody tech aesthetic, deep blue-black palette with
+electric cyan and amber accents, volumetric light, shallow depth of field,
+subtle film grain, anamorphic lens flare, high contrast.
+SFX: rhythmic soft mechanical ticks as each entry passes.
+Ambient noise: a cool steady archival hum.
+No spoken dialogue, no voiceover, no subtitles, no captions, no on-screen text,
+no logos, no watermark.
+```
 
 ### ACT IV — CLOSE
 
-**S13 · 0:56–1:00 · 4s**
+#### S13 · 0:56–1:00 · 4s · **gen 4s** · end card
 - **VO:** "Not a chatbot. A first responder."
-- **On-screen text:** `AGENTIC ON-CALL INCIDENT RESPONSE` · beneath: `LangGraph · Python · FastAPI` · then your GitHub handle
-- **SFX:** single held chord, soft impact on the title, tail out
-- **Prompt:**
-  > Slow drift forward through dark empty space with faint drifting light
-  > particles and a soft cyan glow along the horizon line. Clean, minimal,
-  > large area of empty negative space in the center of frame. Very slow forward
-  > dolly, calm and final.
+- **Overlay in post:** `AGENTIC ON-CALL INCIDENT RESPONSE` / `LangGraph · Python · FastAPI` / your GitHub handle
+
+```
+Very slow forward dolly through empty space. Faint drifting light particles
+catching the light, with a soft cyan glow along a distant horizon line. Dark,
+clean and minimal, with a large area of empty negative space in the center of
+frame. Calm and final. Cinematic photoreal render, dark moody tech aesthetic,
+deep blue-black palette with electric cyan and amber accents, volumetric light,
+shallow depth of field, subtle film grain, anamorphic lens flare, high contrast.
+SFX: a single held chord with a soft low impact, then tailing out into silence.
+Ambient noise: deep quiet with a faint sub-bass presence.
+No spoken dialogue, no voiceover, no subtitles, no captions, no on-screen text,
+no logos, no watermark.
+```
 
 ---
 
-## Post-production checklist
+## Saving generations with timestamp prompting
 
-1. **Generate** each shot 3–4 times; AI video is a lottery, pick the best take.
-2. **Trim** each clip to its stated duration — most tools output 5–10s.
-3. **Add all text in your editor.** Nothing readable comes from the AI clips.
-   Use one mono typeface (JetBrains Mono / IBM Plex Mono) for data values and
-   one clean sans (Inter / Archivo) for titles. Keep every overlay in the same
-   two positions across the film.
-4. **Burn in captions.** LinkedIn autoplays muted — assume the first viewing has
-   no sound. The video must work silently.
-5. **Grade** all clips together for a consistent teal-and-amber look, or the
-   cuts will feel like 13 different films.
-6. **Sound:** tense sparse drone in Act I → half-beat of silence at 0:17 →
-   minimal building electronic pulse through Act II → sustained and confident in
-   Act III → single resolving chord on the title.
-7. **Export** 1920×1080, H.264, and check it reads on a phone screen.
+Veo can direct several shots inside one clip if you give it timestamps. Pairing
+adjacent shots into one 8-second generation halves your credit spend on Act I.
+Keep the hero shots (S07, S08, S09) separate so you can re-roll them
+independently.
+
+```
+[00:00-00:04] Slow push-in extreme close-up. A smartphone lying face-up on a
+wooden nightstand in a pitch-dark bedroom. The screen ignites with harsh
+amber-red alert light spilling across the wood grain and washing onto the
+ceiling, the only light source in frame.
+[00:04-00:08] Cut to a static medium shot at a slight low angle. The silhouette
+of a tired person sitting up in bed, opening a laptop; the screen's cold blue
+light floods their face from below, revealing exhaustion.
+Cinematic photoreal render, dark moody tech aesthetic, deep blue-black palette
+with electric cyan and amber accents, volumetric light, shallow depth of field,
+subtle film grain, anamorphic lens flare, high contrast.
+SFX: a phone buzzing hard against wood, then bedsheets shifting and a laptop lid
+opening.
+Ambient noise: the dead silence of a bedroom at night.
+No spoken dialogue, no voiceover, no subtitles, no captions, no on-screen text,
+no logos, no watermark.
+```
+
+---
+
+## Assembling the cut
+
+1. **Trim each clip** to the duration on its slate and lay them in order. You
+   generated 66 seconds; the cut is 60.
+2. **Add every text overlay.** One mono face for data values, one clean sans for
+   titles; keep each overlay in the same two screen positions throughout.
+3. **Lay the narration** over the top and nudge clip lengths so each line lands
+   inside its shot. The VO is the master timing reference, not the visuals.
+4. **Keep Veo's audio** underneath at low level — it is already synchronized —
+   and add one music bed across the whole film.
+5. **Cut the music to near-silence at 0:17** for half a beat. Most important
+   edit in the video.
+6. **Burn in captions.** LinkedIn autoplays muted; the film must work silently.
+7. **Grade all clips together** toward one teal-and-amber look, export
+   1920×1080 H.264, and watch it once on a phone.
 
 ## Claims you can defend
 
-If someone asks "is that real?", these are measured from actual runs:
-
 | Claim in the film | Where it comes from |
 |---|---|
-| resolved in ~20 seconds | measured live over HTTP: 19.1s and 21.1s with tool failures injected; 4.1s on a clean local run |
+| resolved in ~20 seconds | measured live over HTTP: 19.1s and 21.1s with tool failures injected; 4.1s clean local run |
 | confidence 0.92, 11 steps | measured on INC-001 through the live server |
-| 0.85 auto-fix / 0.50 escalate thresholds | `config.py` — `AUTO_FIX_THRESHOLD`, `HITL_LOWER_THRESHOLD` |
+| 0.85 / 0.50 thresholds | `config.py` — `AUTO_FIX_THRESHOLD`, `HITL_LOWER_THRESHOLD` |
 | P0 never auto-resolves | `config.py` — `NO_AUTO_RESOLVE_SEVERITIES` |
-| 3 retries, exponential backoff | `config.py` — `MAX_RETRIES_PER_TOOL`, `RETRY_BACKOFF_SECONDS` (1s/3s/10s) |
+| 3 retries, exponential backoff | `config.py` — `RETRY_BACKOFF_SECONDS` (1s/3s/10s) |
 | confidence 0.70 → human review → escalated | measured live: INC-018 with `{"runbooks":"timeout"}` injected |
 | continues on partial data | measured live: INC-016 with `{"metrics":"timeout"}` injected still resolved |
 
 **One caveat:** the *"forty-five minutes"* in Act I is an industry-typical MTTR,
-**not** something this project measured. It is fair as a general statement about
-manual incident response, but don't present it as your own benchmark. If you
-want to be conservative, change the line to "an hour of pattern-matching" or
-"however long it takes a human to find it".
+**not** something this project measured. Fair as a general statement about manual
+incident response, but don't present it as your own benchmark. To stay
+conservative, change the line to "however long it takes a human to find it".
 
-## If you want 90 seconds instead
+## If you want 90 seconds
 
 Add three shots after S09 and re-pace the VO:
-- **the dead letter queue** — a run that exceeds its step budget being caught and
-  preserved rather than lost (the kill switch at 20 steps)
+- **the dead letter queue** — a run that blows its 20-step budget being caught
+  and preserved rather than silently lost
 - **crash recovery** — the machine halting mid-run and resuming exactly where it
   stopped, from the SQLite checkpoint
 - **the evaluation** — 20 incidents running as a batch, each landing green,
